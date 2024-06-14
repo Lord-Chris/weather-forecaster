@@ -3,6 +3,7 @@ import 'package:stacked/stacked.dart';
 
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/widgets/_widgets.dart';
+import '../../domain/entities/city_location_model.dart';
 import 'home_viewmodel.dart';
 
 class HomeView extends StatelessWidget {
@@ -10,66 +11,70 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Text(
-                'Weather Forecaster',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ViewModelBuilder.reactive(
-                viewModelBuilder: () => HomeViewModel(),
-                builder: (context, viewModel, _) {
-                  if (viewModel.isBusy) {
-                    return const AppLoader();
-                  }
-
-                  if (viewModel.cities.isEmpty) {
-                    return const Expanded(
-                      child: Center(
-                        child: Text('No cities found'),
+    return ViewModelBuilder.reactive(
+        viewModelBuilder: () => HomeViewModel(),
+        onViewModelReady: (viewModel) => viewModel.getCurrentWeather(),
+        builder: (context, viewModel, _) {
+          return Scaffold(
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Weather Forecaster',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  }
-
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+                    ),
+                    const SizedBox(height: 24),
+                    if (viewModel.allCities.isNotEmpty)
                       AppTextField(
                         onChanged: viewModel.onSearchQueryChanged,
                         hint: 'Search city',
                       ),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: 5, // viewModel.cities.length,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        itemBuilder: (context, index) {
-                          // final weather = viewModel.cities[index];
-                          return const CityItemCard();
-                        },
-                      ),
-                    ],
-                  );
-                },
+                    Builder(
+                      builder: (context) {
+                        if (viewModel.isBusy) {
+                          return const Expanded(
+                            child: AppLoader(color: AppColors.biddaPry800),
+                          );
+                        }
+
+                        if (viewModel.cities.isEmpty) {
+                          return const Expanded(
+                            child: Center(child: Text('No cities found')),
+                          );
+                        }
+
+                        return Expanded(
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: viewModel.cities.length,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            itemBuilder: (context, index) {
+                              final city = viewModel.cities[index];
+                              return CityItemCard(city: city);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
+            ),
+          );
+        });
   }
 }
 
 class CityItemCard extends StatelessWidget {
+  final CityLocationModel city;
   const CityItemCard({
     super.key,
+    required this.city,
   });
 
   @override
@@ -84,15 +89,15 @@ class CityItemCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'weather.cityName',
+                    city.name,
                     style: AppTextStyles.medium16,
                   ),
                 ),
                 Spacing.horizRegular(),
-                const Text(
-                  'weather.temperature',
+                Text(
+                  city.weather?.weather.first.main ?? '',
                   style: AppTextStyles.regular14,
                 ),
               ],
@@ -103,16 +108,16 @@ class CityItemCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'weather.weather',
+                    'Min Temp: ${city.weather?.main.tempMin}',
                     style: AppTextStyles.regular12,
                   ),
                 ),
                 Spacing.horizRegular(),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'weather.humidity',
+                    'Max Temp: ${city.weather?.main.tempMax}',
                     style: AppTextStyles.regular12,
                   ),
                 ),
