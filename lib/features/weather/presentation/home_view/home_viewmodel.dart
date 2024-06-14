@@ -9,8 +9,10 @@ import '../../domain/entities/city_location_model.dart';
 class HomeViewModel extends BaseViewModel {
   final _log = getLogger('HomeViewModel');
   final _weatherRepo = locator<WeatherRepo>();
+  final _navigationService = locator<NavigationService>();
+
   List<CityLocationModel> allCities = AppConstants.cities;
-  final List<CityLocationModel> searchedCities = [];
+  final searchedCities = <CityLocationModel>[];
   String searchQuery = '';
 
   List<CityLocationModel> get cities =>
@@ -44,5 +46,12 @@ class HomeViewModel extends BaseViewModel {
     } finally {
       setBusy(false);
     }
+  }
+
+  void onCardTap(CityLocationModel city) {
+    _navigationService.navigateTo(
+      Routes.weatherDetailsView,
+      arguments: WeatherDetailsViewArguments(city: city),
+    );
   }
 }

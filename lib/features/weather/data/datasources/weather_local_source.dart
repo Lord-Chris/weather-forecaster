@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../services/_services.dart';
@@ -10,7 +12,7 @@ class WeatherLocalSource {
     await _localStorageService.put(
       StorageKeys.weatherBox,
       key: cityId,
-      value: weather.toMap(),
+      value: weather.toJson(),
     );
   }
 
@@ -19,6 +21,6 @@ class WeatherLocalSource {
       StorageKeys.weatherBox,
       key: cityId,
     );
-    return weather != null ? WeatherModel.fromMap(weather) : null;
+    return weather != null ? WeatherModel.fromJson(jsonEncode(weather)) : null;
   }
 }

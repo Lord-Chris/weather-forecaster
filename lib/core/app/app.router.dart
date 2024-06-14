@@ -5,9 +5,12 @@
 // **************************************************************************
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:flutter/material.dart' as _i4;
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart' as _i1;
-import 'package:stacked_services/stacked_services.dart' as _i4;
+import 'package:stacked_services/stacked_services.dart' as _i6;
+import 'package:weather_forecast/features/weather/domain/entities/city_location_model.dart'
+    as _i5;
 import 'package:weather_forecast/features/weather/presentation/home_view/home_view.dart'
     as _i2;
 import 'package:weather_forecast/features/weather/presentation/weather_details_view/weather_details_view.dart'
@@ -44,8 +47,10 @@ class StackedRouter extends _i1.RouterBase {
       );
     },
     _i3.WeatherDetailsView: (data) {
+      final args = data.getArgs<WeatherDetailsViewArguments>(nullOk: false);
       return _i1.buildAdaptivePageRoute<dynamic>(
-        builder: (context) => const _i3.WeatherDetailsView(),
+        builder: (context) =>
+            _i3.WeatherDetailsView(key: args.key, city: args.city),
         settings: data,
       );
     },
@@ -58,7 +63,34 @@ class StackedRouter extends _i1.RouterBase {
   Map<Type, _i1.StackedRouteFactory> get pagesMap => _pagesMap;
 }
 
-extension NavigatorStateExtension on _i4.NavigationService {
+class WeatherDetailsViewArguments {
+  const WeatherDetailsViewArguments({
+    this.key,
+    required this.city,
+  });
+
+  final _i4.Key? key;
+
+  final _i5.CityLocationModel city;
+
+  @override
+  String toString() {
+    return '{"key": "$key", "city": "$city"}';
+  }
+
+  @override
+  bool operator ==(covariant WeatherDetailsViewArguments other) {
+    if (identical(this, other)) return true;
+    return other.key == key && other.city == city;
+  }
+
+  @override
+  int get hashCode {
+    return key.hashCode ^ city.hashCode;
+  }
+}
+
+extension NavigatorStateExtension on _i6.NavigationService {
   Future<dynamic> navigateToHomeView([
     int? routerId,
     bool preventDuplicates = true,
@@ -73,14 +105,17 @@ extension NavigatorStateExtension on _i4.NavigationService {
         transition: transition);
   }
 
-  Future<dynamic> navigateToWeatherDetailsView([
+  Future<dynamic> navigateToWeatherDetailsView({
+    _i4.Key? key,
+    required _i5.CityLocationModel city,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
     Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
         transition,
-  ]) async {
+  }) async {
     return navigateTo<dynamic>(Routes.weatherDetailsView,
+        arguments: WeatherDetailsViewArguments(key: key, city: city),
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,
@@ -101,14 +136,17 @@ extension NavigatorStateExtension on _i4.NavigationService {
         transition: transition);
   }
 
-  Future<dynamic> replaceWithWeatherDetailsView([
+  Future<dynamic> replaceWithWeatherDetailsView({
+    _i4.Key? key,
+    required _i5.CityLocationModel city,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
     Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
         transition,
-  ]) async {
+  }) async {
     return replaceWith<dynamic>(Routes.weatherDetailsView,
+        arguments: WeatherDetailsViewArguments(key: key, city: city),
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,

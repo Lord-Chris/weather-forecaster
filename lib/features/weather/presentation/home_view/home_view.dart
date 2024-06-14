@@ -23,10 +23,7 @@ class HomeView extends StatelessWidget {
                   children: [
                     const Text(
                       'Weather Forecaster',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppTextStyles.semiBold24,
                     ),
                     const SizedBox(height: 24),
                     if (viewModel.allCities.isNotEmpty)
@@ -49,13 +46,17 @@ class HomeView extends StatelessWidget {
                         }
 
                         return Expanded(
-                          child: ListView.builder(
+                          child: ListView.separated(
                             shrinkWrap: true,
                             itemCount: viewModel.cities.length,
                             padding: const EdgeInsets.symmetric(vertical: 16),
+                            separatorBuilder: (_, __) => Spacing.vertRegular(),
                             itemBuilder: (context, index) {
                               final city = viewModel.cities[index];
-                              return CityItemCard(city: city);
+                              return CityItemCard(
+                                city: city,
+                                onTap: viewModel.onCardTap,
+                              );
                             },
                           ),
                         );
@@ -72,59 +73,66 @@ class HomeView extends StatelessWidget {
 
 class CityItemCard extends StatelessWidget {
   final CityLocationModel city;
+  final void Function(CityLocationModel)? onTap;
+
   const CityItemCard({
     super.key,
     required this.city,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    city.name,
-                    style: AppTextStyles.medium16,
+    return InkWell(
+      onTap: () => onTap?.call(city),
+      child: Card(
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      city.name,
+                      style: AppTextStyles.medium16,
+                    ),
                   ),
-                ),
-                Spacing.horizRegular(),
-                Text(
-                  city.weather?.weather.first.main ?? '',
-                  style: AppTextStyles.regular14,
-                ),
-              ],
+                  Spacing.horizRegular(),
+                  Text(
+                    city.weather?.weather.first.main ?? '',
+                    style: AppTextStyles.regular14,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Min Temp: ${city.weather?.main.tempMin}',
-                    style: AppTextStyles.regular12,
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Min Temp: ${city.weather?.main.tempMin}',
+                      style: AppTextStyles.regular12,
+                    ),
                   ),
-                ),
-                Spacing.horizRegular(),
-                Expanded(
-                  child: Text(
-                    'Max Temp: ${city.weather?.main.tempMax}',
-                    style: AppTextStyles.regular12,
+                  Spacing.horizRegular(),
+                  Expanded(
+                    child: Text(
+                      'Max Temp: ${city.weather?.main.tempMax}',
+                      style: AppTextStyles.regular12,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

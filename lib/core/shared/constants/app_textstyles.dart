@@ -94,8 +94,8 @@ class AppTextStyles {
     height: 1.56,
   );
 
-  static const semiBold20 = TextStyle(
-    fontSize: 20,
+  static const semiBold24 = TextStyle(
+    fontSize: 24,
     fontWeight: FontWeight.w600,
     height: 1.5,
   );

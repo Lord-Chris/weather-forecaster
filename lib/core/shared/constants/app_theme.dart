@@ -10,10 +10,10 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.gray50,
     useMaterial3: true,
     appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.white,
-      elevation: 1,
+      backgroundColor: AppColors.gray50,
+      elevation: 0,
       iconTheme: const IconThemeData(size: 17),
-      surfaceTintColor: AppColors.white,
+      surfaceTintColor: AppColors.gray50,
       shadowColor: AppColors.gray400,
       centerTitle: true,
       titleTextStyle: AppTextStyles.semiBold16.copyWith(
