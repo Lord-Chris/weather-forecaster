@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
+import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/widgets/_widgets.dart';
 import '../../data/dtos/city_location_model.dart';
@@ -18,7 +19,7 @@ class WeatherDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
-      viewModelBuilder: () => WeatherDetailsViewModel(),
+      viewModelBuilder: () => locator<WeatherDetailsViewModel>(),
       onViewModelReady: (viewModel) => viewModel.init(city),
       builder: (context, viewModel, _) {
         return Scaffold(

@@ -9,6 +9,7 @@ import 'package:weather_forecast/features/weather/presentation/home_view/home_vi
 import 'package:weather_forecast/features/weather/presentation/home_view/home_viewmodel.dart';
 import 'package:weather_forecast/features/weather/presentation/widgets/city_item_card.dart';
 
+import '../../../../helpers/helpers.dart';
 import '../../../../helpers/viewmodel_helpers.dart';
 
 void main() {
@@ -60,6 +61,10 @@ void main() {
       viewModel = locator<HomeViewModel>();
     });
 
+    tearDown(() {
+      unregisterViewModels();
+    });
+
     testWidgets(
         'should show the text `Weather Forecaster` and a loader when the view is loading initially',
         (tester) async {
@@ -69,7 +74,7 @@ void main() {
       when(() => viewModel.isBusy).thenReturn(true);
       when(() => viewModel.cities).thenReturn([]);
 
-      await tester.pumpWidget(const MaterialApp(home: HomeView()));
+      await tester.pumpWidget(buildTestableWidget(const HomeView()));
       verify(() => viewModel.getCurrentWeather()).called(1);
       verify(() => viewModel.allCities).called(1);
 
@@ -89,7 +94,7 @@ void main() {
       when(() => viewModel.isBusy).thenReturn(false);
       when(() => viewModel.cities).thenReturn([]);
 
-      await tester.pumpWidget(const MaterialApp(home: HomeView()));
+      await tester.pumpWidget(buildTestableWidget(const HomeView()));
 
       final noCitiesavailable = find.text('No cities available');
       expect(noCitiesavailable, findsOneWidget);
@@ -109,7 +114,7 @@ void main() {
       when(() => viewModel.isBusy).thenReturn(false);
       when(() => viewModel.cities).thenReturn([]);
 
-      await tester.pumpWidget(const MaterialApp(home: HomeView()));
+      await tester.pumpWidget(buildTestableWidget(const HomeView()));
       verify(() => viewModel.getCurrentWeather()).called(1);
       expect(viewModel.allCities, isEmpty);
 
@@ -130,7 +135,7 @@ void main() {
       when(() => viewModel.isBusy).thenReturn(false);
       when(() => viewModel.cities).thenReturn([testCityModel]);
 
-      await tester.pumpWidget(const MaterialApp(home: HomeView()));
+      await tester.pumpWidget(buildTestableWidget(const HomeView()));
 
       final searchField = find.byType(AppTextField);
       expect(searchField, findsOneWidget);
@@ -151,13 +156,14 @@ void main() {
       when(() => viewModel.isBusy).thenReturn(false);
       when(() => viewModel.cities).thenReturn([testCityModel]);
 
-      await tester.pumpWidget(const MaterialApp(home: HomeView()));
+      await tester.pumpWidget(buildTestableWidget(const HomeView()));
+      verify(() => viewModel.getCurrentWeather()).called(1);
 
       final cityList = find.byType(ListView);
       expect(cityList, findsOneWidget);
 
       await tester.fling(cityList, const Offset(0, 300), 3000);
-      await tester.pump();
+      await tester.pumpAndSettle();
       verify(() => viewModel.getCurrentWeather()).called(1);
     });
   });

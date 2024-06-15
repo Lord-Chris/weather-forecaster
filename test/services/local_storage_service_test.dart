@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mocktail/mocktail.dart';
@@ -98,6 +99,29 @@ void main() {
         expect(failure, isA<DeviceAppException>());
         verify(() => hive.openBox('test')).called(1);
         verify(() => box.get('key')).called(1);
+      });
+
+      test('When called, should return null when the value type is not correct',
+          () async {
+        // Arrange
+        TestWidgetsFlutterBinding.ensureInitialized();
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (MethodCall methodCall) async => 'test-path',
+        );
+        when(() => hive.init(any())).thenAnswer((_) => Future.value());
+        when(() => hive.openBox(any())).thenAnswer((_) => Future.value(box));
+        when(() => box.get(any())).thenThrow(TypeError());
+
+        // Act
+        final result = await service.get('test-box', key: 'key');
+
+        // Assert
+        expect(result, isNull);
+        verify(() => hive.openBox('test-box')).called(1);
+        verify(() => box.get('key')).called(1);
+        verify(() => hive.init(any())).called(1);
       });
     });
 
