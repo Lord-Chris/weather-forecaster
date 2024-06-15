@@ -12,6 +12,8 @@ import 'package:stacked_shared/stacked_shared.dart';
 import '../../features/weather/data/datasources/weather_local_source.dart';
 import '../../features/weather/data/datasources/weather_remote_source.dart';
 import '../../features/weather/data/repositories/weather_repo.dart';
+import '../../features/weather/presentation/home_view/home_viewmodel.dart';
+import '../../features/weather/presentation/weather_details_view/weather_details_viewmodel.dart';
 import '../../services/api/api_service.dart';
 import '../../services/api/i_api.dart';
 import '../../services/connectivity_service/connectivity_service.dart';
@@ -40,4 +42,6 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => WeatherRepo());
   locator.registerFactory(() => WeatherRemoteSource());
   locator.registerFactory(() => WeatherLocalSource());
+  locator.registerFactory(() => HomeViewModel());
+  locator.registerFactory(() => WeatherDetailsViewModel());
 }

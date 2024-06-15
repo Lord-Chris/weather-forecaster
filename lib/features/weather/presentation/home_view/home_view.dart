@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
+import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/widgets/_widgets.dart';
 import '../widgets/city_item_card.dart';
@@ -12,7 +13,7 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
-        viewModelBuilder: () => HomeViewModel(),
+        viewModelBuilder: () => locator<HomeViewModel>(),
         onViewModelReady: (viewModel) => viewModel.getCurrentWeather(),
         builder: (context, viewModel, _) {
           return Scaffold(
@@ -41,11 +42,6 @@ class HomeView extends StatelessWidget {
                           );
                         }
 
-                        if (viewModel.cities.isEmpty) {
-                          return const Expanded(
-                            child: Center(child: Text('No cities found')),
-                          );
-                        }
                         if (viewModel.cities.isEmpty) {
                           return Padding(
                             padding: const EdgeInsets.only(top: 20),
