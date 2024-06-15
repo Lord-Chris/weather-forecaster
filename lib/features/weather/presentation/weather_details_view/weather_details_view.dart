@@ -4,7 +4,8 @@ import 'package:stacked/stacked.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/widgets/_widgets.dart';
 import '../../domain/entities/city_location_model.dart';
-import '../home_view/home_view.dart';
+import '../widgets/city_item_card.dart';
+import '../widgets/forecast_item_card.dart';
 import 'weather_details_viewmodel.dart';
 
 class WeatherDetailsView extends StatelessWidget {
@@ -18,17 +19,18 @@ class WeatherDetailsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => WeatherDetailsViewModel(),
-      // onViewModelReady: (viewModel) => viewModel.getCurrentWeather(),
+      onViewModelReady: (viewModel) => viewModel.init(city),
       builder: (context, viewModel, _) {
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: true,
             title: Text(
-              city.name,
+              viewModel.city.name,
               style: AppTextStyles.semiBold24,
             ),
           ),
-          body: SafeArea(
+          body: RefreshIndicator(
+            onRefresh: viewModel.fetchForecast,
             child: ListView(
               children: [
                 Padding(
@@ -41,19 +43,19 @@ class WeatherDetailsView extends StatelessWidget {
                         style: AppTextStyles.medium14,
                       ),
                       Spacing.vertSmall(),
-                      CityItemCard(city: city),
+                      CityItemCard(city: viewModel.city),
                     ],
                   ),
                 ),
                 const Divider(),
                 Builder(builder: (context) {
-                  if (viewModel.isBusy) {
+                  if (viewModel.isBusy && viewModel.forecast.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.only(top: 20),
                       child: AppLoader(color: AppColors.biddaPry800),
                     );
                   }
-                  if ([].isEmpty) {
+                  if (viewModel.forecast.isEmpty) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 20),
                       child: Column(
@@ -68,7 +70,7 @@ class WeatherDetailsView extends StatelessWidget {
                           AppButton(
                             label: 'Refresh',
                             isCollapsed: true,
-                            onPressed: () {},
+                            onPressed: viewModel.fetchForecast,
                           ),
                         ],
                       ),
@@ -87,11 +89,11 @@ class WeatherDetailsView extends StatelessWidget {
                         ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: 5, //viewModel.cities.length,
+                          itemCount: viewModel.forecast.length,
                           separatorBuilder: (_, __) => Spacing.vertRegular(),
                           itemBuilder: (context, index) {
-                            // final city = viewModel.cities[index];
-                            return CityItemCard(city: city);
+                            final weather = viewModel.forecast[index];
+                            return ForecastItemCard(weather: weather);
                           },
                         ),
                       ],

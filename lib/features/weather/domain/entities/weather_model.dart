@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
+
 class WeatherModel {
   final Coord coord;
   final List<Weather> weather;
@@ -55,7 +57,8 @@ class WeatherModel {
   factory WeatherModel.fromMap(Map<String, dynamic> map) {
     return WeatherModel(
       coord: Coord.fromMap(map['coord']),
-      weather: List<Weather>.from(map['weather']?.map((x) => Weather.fromMap(x)) ?? const []),
+      weather: List<Weather>.from(
+          map['weather']?.map((x) => Weather.fromMap(x)) ?? const []),
       base: map['base'] ?? '',
       main: Main.fromMap(map['main']),
       visibility: map['visibility']?.toInt() ?? 0,
@@ -75,6 +78,11 @@ class WeatherModel {
 
   factory WeatherModel.fromJson(String source) =>
       WeatherModel.fromMap(json.decode(source));
+
+  String get parsedDate =>
+      DateFormat.yMEd().format(DateTime.fromMillisecondsSinceEpoch(dt * 1000));
+  String get parsedTime =>
+      DateFormat.jms().format(DateTime.fromMillisecondsSinceEpoch(dt * 1000));
 }
 
 class Clouds {

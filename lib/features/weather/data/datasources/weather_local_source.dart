@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../services/_services.dart';
+import '../../domain/entities/forecast_model.dart';
 import '../../domain/entities/weather_model.dart';
 
 class WeatherLocalSource {
@@ -22,5 +23,23 @@ class WeatherLocalSource {
       key: cityId,
     );
     return weather != null ? WeatherModel.fromJson(jsonEncode(weather)) : null;
+  }
+
+  Future<void> cacheForecast(String cityId, ForecastModel forecast) async {
+    await _localStorageService.put(
+      StorageKeys.forecastBox,
+      key: cityId,
+      value: forecast.toJson(),
+    );
+  }
+
+  Future<ForecastModel?> getCachedForecast(String cityId) async {
+    final forecast = await _localStorageService.get(
+      StorageKeys.forecastBox,
+      key: cityId,
+    );
+    return forecast != null
+        ? ForecastModel.fromJson(jsonEncode(forecast))
+        : null;
   }
 }
