@@ -3,7 +3,7 @@ import 'package:stacked/stacked.dart';
 
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/widgets/_widgets.dart';
-import '../../domain/entities/city_location_model.dart';
+import '../../data/dtos/city_location_model.dart';
 import '../widgets/city_item_card.dart';
 import '../widgets/forecast_item_card.dart';
 import 'weather_details_viewmodel.dart';
@@ -63,7 +63,7 @@ class WeatherDetailsView extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            'No forecast found',
+                            'No forecast available',
                             style: AppTextStyles.regular14,
                           ),
                           Spacing.vertRegular(),

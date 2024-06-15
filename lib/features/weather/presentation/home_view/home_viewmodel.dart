@@ -4,7 +4,7 @@ import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/models/_models.dart';
 import '../../data/repositories/weather_repo.dart';
-import '../../domain/entities/city_location_model.dart';
+import '../../data/dtos/city_location_model.dart';
 
 class HomeViewModel extends BaseViewModel {
   final _log = getLogger('HomeViewModel');

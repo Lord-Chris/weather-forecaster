@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../services/_services.dart';
-import '../../domain/entities/forecast_model.dart';
-import '../../domain/entities/weather_model.dart';
+import '../dtos/forecast_model.dart';
+import '../dtos/weather_model.dart';
 
 class WeatherLocalSource {
   final _localStorageService = locator<ILocalStorage>();
@@ -22,7 +20,7 @@ class WeatherLocalSource {
       StorageKeys.weatherBox,
       key: cityId,
     );
-    return weather != null ? WeatherModel.fromJson(jsonEncode(weather)) : null;
+    return weather != null ? WeatherModel.fromJson(weather) : null;
   }
 
   Future<void> cacheForecast(String cityId, ForecastModel forecast) async {
@@ -38,8 +36,6 @@ class WeatherLocalSource {
       StorageKeys.forecastBox,
       key: cityId,
     );
-    return forecast != null
-        ? ForecastModel.fromJson(jsonEncode(forecast))
-        : null;
+    return forecast != null ? ForecastModel.fromJson(forecast) : null;
   }
 }

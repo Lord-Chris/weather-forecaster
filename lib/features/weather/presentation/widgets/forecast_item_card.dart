@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/string_extension.dart';
 import '../../../../core/shared/constants/_constants.dart';
-import '../../domain/entities/forecast_model.dart';
+import '../../data/dtos/forecast_model.dart';
 
 class ForecastItemCard extends StatelessWidget {
   final ListElement weather;

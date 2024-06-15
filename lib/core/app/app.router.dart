@@ -9,7 +9,7 @@ import 'package:flutter/material.dart' as _i4;
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart' as _i1;
 import 'package:stacked_services/stacked_services.dart' as _i6;
-import 'package:weather_forecast/features/weather/domain/entities/city_location_model.dart'
+import 'package:weather_forecast/features/weather/data/dtos/city_location_model.dart'
     as _i5;
 import 'package:weather_forecast/features/weather/presentation/home_view/home_view.dart'
     as _i2;

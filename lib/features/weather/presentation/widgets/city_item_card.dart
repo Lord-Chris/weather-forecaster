@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/shared/constants/_constants.dart';
-import '../../domain/entities/city_location_model.dart';
+import '../../data/dtos/city_location_model.dart';
 
 class CityItemCard extends StatelessWidget {
   final CityLocationModel city;
@@ -68,14 +68,14 @@ class CityItemCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Min Temp: ${city.weather?.main.tempMin}',
+                      'Min Temp: ${city.weather?.main.tempMin ?? '-'}',
                       style: AppTextStyles.regular12,
                     ),
                   ),
                   Spacing.horizRegular(),
                   Expanded(
                     child: Text(
-                      'Max Temp: ${city.weather?.main.tempMax}',
+                      'Max Temp: ${city.weather?.main.tempMax ?? '-'}',
                       style: AppTextStyles.regular12,
                     ),
                   ),

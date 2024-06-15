@@ -41,17 +41,6 @@ class AppTextStyles {
     height: 1.5,
   );
 
-  static const regular18 = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.normal,
-  );
-
-  static const medium12 = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    height: 1.5,
-  );
-
   static const medium14 = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
@@ -70,18 +59,6 @@ class AppTextStyles {
     height: 1.56,
   );
 
-  static const medium48 = TextStyle(
-    fontSize: 48,
-    fontWeight: FontWeight.w500,
-    height: 1.25,
-  );
-
-  static const semiBold14 = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    height: 1.4,
-  );
-
   static const semiBold16 = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
@@ -97,12 +74,6 @@ class AppTextStyles {
   static const semiBold24 = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.w600,
-    height: 1.5,
-  );
-
-  static const bold16 = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.bold,
     height: 1.5,
   );
 }

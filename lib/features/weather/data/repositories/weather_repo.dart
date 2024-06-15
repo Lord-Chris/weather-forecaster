@@ -1,9 +1,9 @@
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/models/_models.dart';
 import '../../../../services/_services.dart';
-import '../../domain/entities/city_location_model.dart';
-import '../../domain/entities/forecast_model.dart';
-import '../../domain/entities/weather_model.dart';
+import '../dtos/city_location_model.dart';
+import '../dtos/forecast_model.dart';
+import '../dtos/weather_model.dart';
 import '../datasources/weather_local_source.dart';
 import '../datasources/weather_remote_source.dart';
 

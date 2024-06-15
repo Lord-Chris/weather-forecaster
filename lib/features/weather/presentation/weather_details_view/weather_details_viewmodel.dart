@@ -3,8 +3,8 @@ import 'package:stacked/stacked.dart';
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/models/_models.dart';
 import '../../data/repositories/weather_repo.dart';
-import '../../domain/entities/city_location_model.dart';
-import '../../domain/entities/forecast_model.dart';
+import '../../data/dtos/city_location_model.dart';
+import '../../data/dtos/forecast_model.dart';
 
 class WeatherDetailsViewModel extends BaseViewModel {
   final _log = getLogger('WeatherDetailsViewModel');

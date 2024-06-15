@@ -114,64 +114,6 @@ class ApiService extends IApi {
     );
   }
 
-  @override
-  Future<Map<String, dynamic>> fetch(
-    Uri uri, {
-    String? method,
-    Duration? sendTimeout,
-    Duration? receiveTimeout,
-    Duration? connectTimeout,
-    Map<String, dynamic>? body,
-    Map<String, dynamic>? queryParameters,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-    CancelToken? cancelToken,
-    String? baseUrl,
-    Map<String, dynamic>? extra,
-    Map<String, dynamic>? headers,
-    ResponseType? responseType,
-    String? contentType,
-    ValidateStatus? validateStatus,
-    bool? receiveDataWhenStatusError,
-    bool? followRedirects,
-    int? maxRedirects,
-    RequestEncoder? requestEncoder,
-    ResponseDecoder? responseDecoder,
-    ListFormat? listFormat,
-    bool? setRequestContentTypeWhenNoPayload,
-  }) async {
-    return await _performRequest(
-      _dio.fetch(
-        RequestOptions(
-          path: uri.toString(),
-          data: body,
-          headers: headers,
-          baseUrl: baseUrl,
-          queryParameters: queryParameters,
-          cancelToken: cancelToken,
-          connectTimeout: connectTimeout,
-          contentType: contentType,
-          extra: extra,
-          followRedirects: followRedirects,
-          listFormat: listFormat,
-          maxRedirects: maxRedirects,
-          method: method,
-          onReceiveProgress: onReceiveProgress,
-          onSendProgress: onReceiveProgress,
-          receiveDataWhenStatusError: receiveDataWhenStatusError,
-          receiveTimeout: receiveTimeout,
-          requestEncoder: requestEncoder,
-          responseDecoder: responseDecoder,
-          responseType: responseType,
-          sendTimeout: sendTimeout,
-          setRequestContentTypeWhenNoPayload:
-              setRequestContentTypeWhenNoPayload,
-          validateStatus: validateStatus,
-        ),
-      ),
-    );
-  }
-
   /// Try/catch to wrap api calls
   Future<Map<String, dynamic>> _performRequest(
       Future<Response<dynamic>> apiCall) async {

@@ -40,30 +40,4 @@ abstract class IApi {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
   });
-
-  Future<Map<String, dynamic>> fetch(
-    Uri uri, {
-    String? method,
-    Duration? sendTimeout,
-    Duration? receiveTimeout,
-    Duration? connectTimeout,
-    Map<String, dynamic> body,
-    Map<String, dynamic>? queryParameters,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-    CancelToken? cancelToken,
-    String? baseUrl,
-    Map<String, dynamic>? extra,
-    Map<String, dynamic>? headers,
-    ResponseType? responseType,
-    String? contentType,
-    ValidateStatus? validateStatus,
-    bool? receiveDataWhenStatusError,
-    bool? followRedirects,
-    int? maxRedirects,
-    RequestEncoder? requestEncoder,
-    ResponseDecoder? responseDecoder,
-    ListFormat? listFormat,
-    bool? setRequestContentTypeWhenNoPayload,
-  });
 }
