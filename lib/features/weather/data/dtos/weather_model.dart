@@ -1,8 +1,9 @@
 import 'dart:convert';
 
+import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 
-class WeatherModel {
+class WeatherModel extends Equatable {
   final Coord coord;
   final List<Weather> weather;
   final String base;
@@ -18,7 +19,7 @@ class WeatherModel {
   final String name;
   final int cod;
 
-  WeatherModel({
+  const WeatherModel({
     required this.coord,
     required this.weather,
     required this.base,
@@ -83,6 +84,26 @@ class WeatherModel {
       DateFormat.yMEd().format(DateTime.fromMillisecondsSinceEpoch(dt * 1000));
   String get parsedTime =>
       DateFormat.jms().format(DateTime.fromMillisecondsSinceEpoch(dt * 1000));
+
+  @override
+  List<Object?> get props {
+    return [
+      coord,
+      weather,
+      base,
+      main,
+      visibility,
+      wind,
+      rain,
+      clouds,
+      dt,
+      sys,
+      timezone,
+      id,
+      name,
+      cod,
+    ];
+  }
 }
 
 class Clouds {
