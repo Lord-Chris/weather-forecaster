@@ -9,11 +9,6 @@ abstract class IAppException {
     this.data,
   });
 
-  static bool isValidationAppException(Map<String, dynamic> errorBody) {
-    if (errorBody['message'] == 'Validation Errors') return true;
-    return false;
-  }
-
   @override
   String toString() =>
       'IAppException(title: $title, message: $message, data: $data)';

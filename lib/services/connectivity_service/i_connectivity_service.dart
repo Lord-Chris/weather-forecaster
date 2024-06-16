@@ -5,7 +5,4 @@ abstract class IConnectivityService {
 
   /// Checks if there is an active internet connection.
   Future<bool> checkInternetConnection();
-
-  /// Disposes of any resources used by the connectivity service.
-  Future<void> dispose();
 }
