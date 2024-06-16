@@ -15,11 +15,6 @@ This is a simple weather forecaster that uses the OpenWeatherMap API to get the 
 
 - Ensure you have [Flutter](https://flutter.dev/docs/get-started/install) installed on your machine.
 - You will need an API key from [OpenWeatherMap](https://openweathermap.org/api) to access the weather data.
-- Create a `.env` file in the root of the project and add your API key as shown below:
-
-```bash
-API_KEY=your_api_key
-```
 
 ### Steps
 
