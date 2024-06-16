@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:equatable/equatable.dart';
 
 import 'weather_model.dart';
@@ -29,32 +27,6 @@ class CityLocationModel extends Equatable {
       weather,
     ];
   }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'lat': lat,
-      'lon': lon,
-      'weather': weather?.toMap(),
-    };
-  }
-
-  factory CityLocationModel.fromMap(Map<String, dynamic> map) {
-    return CityLocationModel(
-      id: map['id'] ?? '',
-      name: map['name'] ?? '',
-      lat: map['lat']?.toDouble() ?? 0.0,
-      lon: map['lon']?.toDouble() ?? 0.0,
-      weather:
-          map['weather'] != null ? WeatherModel.fromMap(map['weather']) : null,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory CityLocationModel.fromJson(String source) =>
-      CityLocationModel.fromMap(json.decode(source));
 
   CityLocationModel copyWith({
     String? id,

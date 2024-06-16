@@ -68,6 +68,24 @@ API_KEY=your_api_key
    
    Pull down the screen to refresh the weather data.
 
+
+## Running Tests
+
+Execute the following command to run the tests:
+
+```bash
+flutter test
+
+```
+
+To generate a coverage report, run the following command:
+
+```bash
+flutter test --coverage
+```
+
+The coverage report will be generated in the `coverage` directory.
+
 ---
 > Truth can only be found in one place: the code. <br/>
 > -- Robert C. Martin
