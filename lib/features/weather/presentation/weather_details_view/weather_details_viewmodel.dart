@@ -18,6 +18,14 @@ class WeatherDetailsViewModel extends BaseViewModel {
     fetchForecast();
   }
 
+  /// Fetches the forecast for the current city.
+  ///
+  /// This method sets the [busy] state to true, then calls the [_weatherRepo.get5DayForecast] method
+  /// to fetch the 5-day forecast for the [city]. If an [IAppException] is thrown during the process,
+  /// Finally, the [busy] state is set to false.
+  ///
+  /// Throws:
+  ///   - [IAppException]: If an error occurs while fetching the forecast.
   Future<void> fetchForecast() async {
     try {
       setBusy(true);

@@ -15,9 +15,18 @@ class HomeViewModel extends BaseViewModel {
   final searchedCities = <CityLocationModel>[];
   String searchQuery = '';
 
+  /// Returns a list of [CityLocationModel] objects representing the cities to be displayed.
+  /// If [searchQuery] is empty, it returns all cities. Otherwise, it returns the cities
+  /// that match the search query.
   List<CityLocationModel> get cities =>
       searchQuery.isEmpty ? allCities : searchedCities;
 
+  /// Callback function that is called when the search query is changed.
+  ///
+  /// Updates the [searchQuery] with the new value, clears the [searchedCities] list,
+  /// and filters the [allCities] list based on the new search query.
+  /// If the search query is empty, it notifies the listeners.
+  /// Finally, it notifies the listeners again after updating the [searchedCities] list.
   void onSearchQueryChanged(String value) {
     searchQuery = value;
     searchedCities.clear();
@@ -33,6 +42,15 @@ class HomeViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  /// Retrieves the current weather for multiple cities.
+  ///
+  /// This method sets the [busy] state to true, indicating that the operation is in progress.
+  /// It then uses the [_weatherRepo] to fetch the current weather for each city in the [cities] list.
+  /// The results are stored in a new list of [CityLocationModel] objects, with the weather data updated.
+  /// Finally, the [allCities] property is updated with the new list of cities.
+  ///
+  /// If an [IAppException] is thrown during the process, it is logged using [_log].
+  /// Regardless of whether an exception is thrown or not, the [busy] state is set to false.
   Future<void> getCurrentWeather() async {
     try {
       setBusy(true);
