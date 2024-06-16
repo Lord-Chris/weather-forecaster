@@ -13,6 +13,7 @@ class ConnectivityService extends IConnectivityService {
   StreamSubscription? _connectionSubscription;
   bool hasConnection = false;
   final _connectionController = StreamController<bool>.broadcast();
+
   @override
   Future<bool> checkInternetConnection() async {
     try {

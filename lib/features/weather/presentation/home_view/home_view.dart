@@ -23,7 +23,7 @@ class HomeView extends StatelessWidget {
                 child: Column(
                   children: [
                     const Text(
-                      'Weather Forecaster',
+                      AppConstants.appName,
                       style: AppTextStyles.semiBold24,
                     ),
                     const SizedBox(height: 24),
