@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
+import '../../../core/interceptors/fault_injection_interceptor.dart';
 import '../../../core/interceptors/logger_interceptor.dart';
 import '../../core/app/_app.dart';
 import '../../core/shared/models/app_exception.dart';
@@ -16,14 +18,20 @@ class ApiService extends IApi {
   ApiService([Dio? dio]) : _dio = dio ?? _createDio();
 
   static Dio _createDio() {
-    return Dio()
+    final dio = Dio()
       ..options.responseType = ResponseType.json
       ..httpClientAdapter
       ..options.headers = {
         'Content-Type': 'application/json; charset=UTF-8',
         'Connection': 'keep-alive',
-      }
-      ..interceptors.addAll([ApiLoggerInterceptor()]);
+      };
+    dio.interceptors.addAll([
+      // TODO(lab-3): add TelemetryInterceptor() here to get one span per request.
+      ApiLoggerInterceptor(),
+      if (kDebugMode && FaultInjectionInterceptor.isEnabled)
+        FaultInjectionInterceptor(dio),
+    ]);
+    return dio;
   }
 
   @override

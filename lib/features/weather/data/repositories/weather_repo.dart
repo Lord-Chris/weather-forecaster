@@ -1,4 +1,7 @@
 import '../../../../core/app/_app.dart';
+import 'package:flutter/foundation.dart';
+
+import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/models/_models.dart';
 import '../../../../services/_services.dart';
 import '../datasources/weather_local_source.dart';
@@ -26,12 +29,27 @@ class WeatherRepo {
   /// Throws [IAppException] if an application-specific exception occurs.
   /// Throws [FallbackAppException] if a fallback exception occurs.
   Future<WeatherModel?> getCurrentWeather(CityLocationModel city) async {
+    // TODO(lab-2): count this attempt (`weather.fetch.attempts`) and time the
+    // whole call (`weather.fetch.duration`) with ITelemetry.counter / timing.
+    debugPrint('weather fetch start city_id=${city.id}');
     try {
       if (await isConnected) {
-        final weather = await _remoteSource.getCurrentWeather(city);
-        await _localSource.cacheWeather(city.id, weather);
-        return weather;
+        try {
+          final weather = await _remoteSource.getCurrentWeather(city);
+          await _localSource.cacheWeather(city.id, weather);
+          debugPrint('weather fetch done city_id=${city.id} source=remote');
+          return weather;
+        } on IAppException catch (e) {
+          if (!WorkshopFlags.silentFallback) rethrow;
+          // Silent failure (logs): the user sees stale data and no error.
+          // The only evidence is the fallback marker on the line below.
+          debugPrint(
+              'weather fetch done city_id=${city.id} source=cache fallback=true error=${e.runtimeType}');
+          return await _localSource.getCachedCurrentWeather(city.id);
+        }
       } else {
+        debugPrint(
+            'weather fetch done city_id=${city.id} source=cache offline=true');
         return await _localSource.getCachedCurrentWeather(city.id);
       }
     } on IAppException {
@@ -50,6 +68,7 @@ class WeatherRepo {
   /// Throws [IAppException] if an application-specific exception occurs.
   /// Throws [FallbackAppException] if a fallback exception occurs.
   Future<ForecastModel?> get5DayForecast(CityLocationModel city) async {
+    debugPrint('forecast fetch start city_id=${city.id}');
     try {
       if (await isConnected) {
         final forecast = await _remoteSource.get5DayForecast(city);

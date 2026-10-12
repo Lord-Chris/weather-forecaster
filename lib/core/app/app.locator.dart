@@ -20,6 +20,8 @@ import '../../services/connectivity_service/connectivity_service.dart';
 import '../../services/connectivity_service/i_connectivity_service.dart';
 import '../../services/local_storage/i_local_storage.dart';
 import '../../services/local_storage/local_storage_service.dart';
+import '../telemetry/i_telemetry.dart';
+import '../telemetry/telemetry.dart';
 
 final locator = StackedLocator.instance;
 
@@ -33,6 +35,7 @@ Future<void> setupLocator({
 
 // Register dependencies
   locator.registerLazySingleton(() => NavigationService());
+  locator.registerLazySingleton<ITelemetry>(() => TelemetryImpl());
   final localStorageService = LocalStorageService();
   await localStorageService.init();
   locator.registerSingleton<ILocalStorage>(localStorageService);

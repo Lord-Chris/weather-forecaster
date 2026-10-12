@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:stacked/stacked.dart';
 
 import '../../../../core/app/_app.dart';
@@ -6,6 +7,8 @@ import '../../../../core/shared/models/_models.dart';
 import '../../data/dtos/city_location_model.dart';
 import '../../data/repositories/weather_repo.dart';
 
+// TODO(lab-3): extend ObservedViewModel instead of BaseViewModel, and wrap the
+// work in getCurrentWeather() with `observe(() async { ... })`.
 class HomeViewModel extends BaseViewModel {
   final _log = getLogger('HomeViewModel');
   final _weatherRepo = locator<WeatherRepo>();
@@ -29,6 +32,7 @@ class HomeViewModel extends BaseViewModel {
   /// Finally, it notifies the listeners again after updating the [searchedCities] list.
   void onSearchQueryChanged(String value) {
     searchQuery = value;
+    debugPrint('search changed length=${value.length}');
     searchedCities.clear();
     if (value.isEmpty) {
       notifyListeners();
@@ -65,12 +69,15 @@ class HomeViewModel extends BaseViewModel {
       allCities = newCities;
     } on IAppException catch (e) {
       _log.e(e);
+      // TODO(lab-1): add a Telemetry.log(...) call next to the line above, with
+      // named fields (error type only, never the message).
     } finally {
       setBusy(false);
     }
   }
 
   void onCardTap(CityLocationModel city) {
+    debugPrint('card tapped city_id=${city.id}');
     _navigationService.navigateTo(
       Routes.weatherDetailsView,
       arguments: WeatherDetailsViewArguments(city: city),

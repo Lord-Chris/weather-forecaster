@@ -1,11 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:stacked/stacked.dart';
 
 import '../../../../core/app/_app.dart';
+import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/models/_models.dart';
 import '../../data/repositories/weather_repo.dart';
 import '../../data/dtos/city_location_model.dart';
 import '../../data/dtos/forecast_model.dart';
 
+// TODO(lab-3): extend ObservedViewModel instead of BaseViewModel, and wrap the
+// work in fetchForecast() with `observe(() async { ... })`.
 class WeatherDetailsViewModel extends BaseViewModel {
   final _log = getLogger('WeatherDetailsViewModel');
   final _weatherRepo = locator<WeatherRepo>();
@@ -15,7 +19,11 @@ class WeatherDetailsViewModel extends BaseViewModel {
 
   void init(CityLocationModel city) {
     this.city = city;
+    debugPrint('details opened city_id=${city.id}');
     fetchForecast();
+    // Silent failure (traces): one tap sends the same request twice. Nothing
+    // crashes; the only evidence is two sibling request spans.
+    if (WorkshopFlags.silentDuplicateRequest) fetchForecast();
   }
 
   /// Fetches the forecast for the current city.
@@ -32,6 +40,7 @@ class WeatherDetailsViewModel extends BaseViewModel {
       _forecast = await _weatherRepo.get5DayForecast(city);
     } on IAppException catch (e) {
       _log.e(e);
+      // TODO(lab-1): add a Telemetry.log(...) call next to the line above.
     } finally {
       setBusy(false);
     }

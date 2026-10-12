@@ -9,6 +9,7 @@ import '../../features/weather/presentation/home_view/home_viewmodel.dart';
 import '../../features/weather/presentation/weather_details_view/weather_details_view.dart';
 import '../../features/weather/presentation/weather_details_view/weather_details_viewmodel.dart';
 import '../../services/_services.dart';
+import '../telemetry/_telemetry.dart';
 
 /// Run "flutter pub run build_runner build --delete-conflicting-outputs"
 /// Run "flutter pub run build_runner watch --delete-conflicting-outputs"
@@ -21,6 +22,7 @@ import '../../services/_services.dart';
   dependencies: [
     /// Services
     LazySingleton(classType: NavigationService),
+    LazySingleton(classType: TelemetryImpl, asType: ITelemetry),
     InitializableSingleton(
       classType: LocalStorageService,
       asType: ILocalStorage,

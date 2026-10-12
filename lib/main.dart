@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'core/app/_app.dart';
 import 'core/shared/constants/_constants.dart';
+import 'core/telemetry/_telemetry.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +12,7 @@ void main() async {
 
 Future<void> _initServices() async {
   await setupLocator();
+  Telemetry.setInstance(locator<ITelemetry>());
 }
 
 class WeatherForecastApp extends StatelessWidget {
@@ -25,6 +27,7 @@ class WeatherForecastApp extends StatelessWidget {
       onGenerateRoute: StackedRouter().onGenerateRoute,
       navigatorObservers: [
         StackedService.routeObserver,
+        TelemetryRouteObserver(),
       ],
     );
   }
