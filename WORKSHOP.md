@@ -63,8 +63,37 @@ Search for `TODO(lab-N)`.
    | 1.10 | **home load** (`home.load`, per flow) | `default_cities`, `saved_cities`, `cities_loaded`, `cities_failed`, `duration_ms` |
 
    Each event is built up in a plain map and logged once in a `finally`. The three sit at different levels (a call, a user action, a whole flow) so you can see how the same idea scales. After 1.8, delete the fetch start/done logs you wrote for 1.3: one line tells the whole story.
-2. **Metrics.** In `WeatherRepo`, add a `weather.fetch.attempts` counter and a `weather.fetch.duration` timing. Stretch: cache-hit ratio, per-city timing.
-3. **Traces.** Add `TelemetryInterceptor` in `ApiService`, make the view models extend `ObservedViewModel` and wrap their work in `observe(...)`. One tap on a city card should give one connected waterfall: view model, request (screen spans are separate).
+
+2. **Metrics.** Ten TODOs, `TODO(lab-2.1)` to `TODO(lab-2.10)`: seven core metrics (70%) and three advanced (30%). Same rule as Lab 1: top to bottom is what to touch first. Pick the type from the question: *how many* is a counter, *how long* is a timing, *what is it now* is a gauge. Tags stay low-cardinality (`source`, `operation`, `error.type`), never an id.
+
+   | Step | Metric | Type |
+   |---|---|---|
+   | 2.1 | `weather.fetch.attempts` | counter (Rate) |
+   | 2.2 | `weather.fetch.errors` by `error.type` | counter (Errors) |
+   | 2.3 | `weather.fetch.duration` | timing (Duration) |
+   | 2.4 | `cache.hit` / `cache.miss` by `cache` | two counters, not a ratio |
+   | 2.5 | `city.search.count`, `city.search.duration`, `city.search.stale_discarded` | counters and timing |
+   | 2.6 | `ui.action` by `action` | counter |
+   | 2.7 | `cities.saved`, `cities.displayed`, `weather.fetch.in_flight` | gauges |
+   | 2.8 | *Advanced:* split 2.3 by `source`, then find the `FAULT_RETRY` tail at p95 | timing with a tag |
+   | 2.9 | *Advanced:* `screen.load.duration` by `screen` | user-perceived timing |
+   | 2.10 | *Advanced:* `http.client.requests` and `http.client.duration` from `TelemetryInterceptor`, so no call site needs a metric call | derived metrics |
+
+3. **Traces.** Ten TODOs, `TODO(lab-3.1)` to `TODO(lab-3.10)`: seven core (70%) and three advanced (30%). Start with 3.1: every later span hangs off the request spans. A span that is never ended is never exported, so the waterfall shows a gap.
+
+   | Step | Do | You should see |
+   |---|---|---|
+   | 3.1 | Add `TelemetryInterceptor` in `ApiService` | one span per HTTP request |
+   | 3.2 | `HomeViewModel` extends `ObservedViewModel`, wrap the load in `observe(...)` | one view model span, one parallel request span per city |
+   | 3.3 | Same for `WeatherDetailsViewModel` | with `SILENT_DUPLICATE_REQUEST=true`, two sibling request spans |
+   | 3.4 | Same for `AirQualityViewModel` | a second fetch shaped like the forecast one |
+   | 3.5 | Same for `AddCityViewModel.search` | spans only for searches that fire; debounced keystrokes make none |
+   | 3.6 | Add attributes to the current span (counts and flags only) | attributes on the span, privacy denylist respected |
+   | 3.7 | Move the catch outside `observe()` so errors reach the span | `error.type` on the span with `FAULT_FAIL_RATE=100` |
+   | 3.8 | *Advanced:* `traced(...)` around connectivity check, remote call and cache write in the repo | where the time goes inside a fetch |
+   | 3.9 | *Advanced:* `traced(...)` around local storage reads and writes | storage as its own bar |
+   | 3.10 | *Advanced:* log inside the observed work | the log carries the same trace and span id as its span |
+
 4. **Migrating an existing code base (partial).** Instrument without touching every call site: forward existing `package:logger` output to telemetry with a `LogOutput`, and carry the trace with a `Zone` so no span is passed by hand. Metrics approach to be decided.
 
 Outside Lab 1, `ITelemetry` is injected everywhere (registered in the locator), so tests can swap in `InMemoryExporter`.

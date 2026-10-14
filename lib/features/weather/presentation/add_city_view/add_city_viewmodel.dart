@@ -43,6 +43,12 @@ class AddCityViewModel extends BaseViewModel {
 
   /// Searches for places matching [query].
   Future<void> search() async {
+    // TODO(lab-3.5) Search span: extend ObservedViewModel and wrap the repo call
+    // in `observe(...)`. The debounce timer means cancelled keystrokes create no
+    // span at all: only the search that actually fires is traced.
+    // TODO(lab-2.5) Search metrics: counter `city.search.count` (tag success),
+    // timing `city.search.duration`, and counter `city.search.stale_discarded`
+    // for responses dropped because the user kept typing.
     // TODO(lab-1.9) Wide event: city search. One `city.search` event per search,
     // logged once in a `finally`: query_length, result_count, stale_discarded,
     // success, error.type, duration_ms. It replaces the separate start, result

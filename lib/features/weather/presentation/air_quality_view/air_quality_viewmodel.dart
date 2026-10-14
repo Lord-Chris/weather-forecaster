@@ -23,6 +23,9 @@ class AirQualityViewModel extends BaseViewModel {
   /// Fetches the air quality for [city]. Errors are logged and leave
   /// [airQuality] unchanged so the view can show its empty state.
   Future<void> fetchAirQuality() async {
+    // TODO(lab-3.4) Air quality span: extend ObservedViewModel and wrap this
+    // work in `observe(...)`. A second fetch under the details screen's trace
+    // should look just like the forecast one.
     try {
       setBusy(true);
       airQuality = await _weatherRepo.getAirQuality(city);

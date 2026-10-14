@@ -8,8 +8,9 @@ import '../../data/repositories/weather_repo.dart';
 import '../../data/dtos/city_location_model.dart';
 import '../../data/dtos/forecast_model.dart';
 
-// TODO(lab-3): extend ObservedViewModel instead of BaseViewModel, and wrap the
-// work in fetchForecast() with `observe(() async { ... })`.
+// TODO(lab-3.3) Details waterfall: extend ObservedViewModel and wrap the work in
+// fetchForecast() with `observe(() async { ... })`. Run with
+// SILENT_DUPLICATE_REQUEST=true and look for two sibling request spans.
 class WeatherDetailsViewModel extends BaseViewModel {
   final _log = getLogger('WeatherDetailsViewModel');
   final _weatherRepo = locator<WeatherRepo>();
@@ -21,6 +22,9 @@ class WeatherDetailsViewModel extends BaseViewModel {
 
   void init(CityLocationModel city) {
     this.city = city;
+    // TODO(lab-3.10) Correlate logs and traces: inside the observed work, log a
+    // line with ITelemetry.log. TelemetryImpl stamps it with the current trace
+    // and span id, so the log lines up with its span. Check the ids match.
     debugPrint('details opened city_id=${city.id}');
     fetchForecast();
     // Silent failure (traces): one tap sends the same request twice. Nothing
@@ -37,11 +41,18 @@ class WeatherDetailsViewModel extends BaseViewModel {
   /// Throws:
   ///   - [IAppException]: If an error occurs while fetching the forecast.
   Future<void> fetchForecast() async {
+    // TODO(lab-2.9) Timing, user-perceived latency: `screen.load.duration` with
+    // a `screen` tag (details here, home in HomeViewModel.init, air_quality in
+    // AirQualityViewModel). Measure from the call to the busy flag clearing.
     try {
       setBusy(true);
       _forecast = await _weatherRepo.get5DayForecast(city);
     } on IAppException catch (e) {
       _log.e(e);
+      // TODO(lab-3.7) Errors on spans: this catch swallows the error INSIDE
+      // observe(), so the span ends as a success. Move the try/catch outside
+      // observe() (or rethrow) so the span records error.type, then verify with
+      // FAULT_FAIL_RATE=100.
     } finally {
       setBusy(false);
     }

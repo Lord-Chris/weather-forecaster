@@ -25,6 +25,10 @@ class TelemetryInterceptor extends Interceptor {
     handler.next(options);
   }
 
+  // TODO(lab-2.10) Derive instead of hand-writing: record `http.client.requests`
+  // (counter, tags method and status_class such as 2xx, 4xx) and
+  // `http.client.duration` (timing) here in onResponse and onError. One place
+  // replaces a metric call at every call site.
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     final span = response.requestOptions.extra[_spanKey] as Span?;

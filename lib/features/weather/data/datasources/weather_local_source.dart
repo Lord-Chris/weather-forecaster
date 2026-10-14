@@ -92,6 +92,8 @@ class WeatherLocalSource {
 
   /// Returns the cities the user added, or an empty list.
   Future<List<CityLocationModel>> getSavedCities() async {
+    // TODO(lab-3.9) Storage spans: wrap this read and saveCities in `traced(...)`.
+    // Not every slow step is the network; local storage shows up as its own bar.
     // TODO(lab-1.5) State and persistence: log what was read and written to
     // storage here and in saveCities (saved_count, cache_hit, parse failures),
     // and what cacheWeather, cacheForecast and cacheAirQuality wrote (city_id).

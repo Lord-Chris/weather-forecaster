@@ -7,8 +7,10 @@ import '../../../../core/shared/models/_models.dart';
 import '../../data/dtos/city_location_model.dart';
 import '../../data/repositories/weather_repo.dart';
 
-// TODO(lab-3): extend ObservedViewModel instead of BaseViewModel, and wrap the
-// work in getCurrentWeather() with `observe(() async { ... })`.
+// TODO(lab-3.2) Home load waterfall: extend ObservedViewModel instead of
+// BaseViewModel and wrap the work in getCurrentWeather() with
+// `observe(() async { ... })`. You should see one view model span with one
+// request span per city as its parallel children.
 class HomeViewModel extends BaseViewModel {
   final _log = getLogger('HomeViewModel');
   final _weatherRepo = locator<WeatherRepo>();
@@ -49,6 +51,10 @@ class HomeViewModel extends BaseViewModel {
 
   /// Loads the cities the user added, then fetches the weather for all cities.
   Future<void> init() async {
+    // TODO(lab-2.7) Gauges, current level: `cities.saved` (saved cities loaded)
+    // and `cities.displayed` after the list is built; in the repo, a
+    // `weather.fetch.in_flight` gauge that goes up when a fetch starts and down
+    // when it ends. Gauges can go down, counters cannot.
     // TODO(lab-1.10) Wide event: home load. One `home.load` event for the whole
     // flow, logged once in a `finally`: default_cities, saved_cities,
     // cities_loaded, cities_failed, duration_ms. getCurrentWeather() runs one
@@ -90,6 +96,10 @@ class HomeViewModel extends BaseViewModel {
         newCities.add(allCities[i].copyWith(weather: res[i]));
       }
       allCities = newCities;
+      // TODO(lab-3.6) Span attributes: inside observe(), add attributes to the
+      // current span (`locator<ITelemetry>().current?.setAttribute('cities',
+      // allCities.length)`). Counts and flags only: names, tokens and keys are
+      // dropped by the privacy rules.
     } on IAppException catch (e) {
       _log.e(e);
       // TODO(lab-1.1) Errors in view models, touch these first (rare, most
@@ -104,6 +114,9 @@ class HomeViewModel extends BaseViewModel {
   }
 
   void onCardTap(CityLocationModel city) {
+    // TODO(lab-2.6) Counter, user actions: `ui.action` tagged action=card_tap
+    // here, add_city in onAddCityTap, air_quality in
+    // WeatherDetailsViewModel.onAirQualityTap. A fixed set of values, never ids.
     // TODO(lab-1.7) Lifecycle: navigation. Replace the print here and in
     // onAddCityTap, WeatherDetailsViewModel.init and onAirQualityTap, and
     // AirQualityViewModel.init, with a structured log (screen, city_id).
