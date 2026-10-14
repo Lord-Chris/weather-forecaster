@@ -19,7 +19,6 @@ class WeatherDetailsViewModel extends BaseViewModel {
 
   void init(CityLocationModel city) {
     this.city = city;
-    // TODO(lab-1.3): lifecycle log. Replace this print (named field: city_id).
     debugPrint('details opened city_id=${city.id}');
     fetchForecast();
     // Silent failure (traces): one tap sends the same request twice. Nothing
@@ -39,13 +38,9 @@ class WeatherDetailsViewModel extends BaseViewModel {
     try {
       setBusy(true);
       _forecast = await _weatherRepo.get5DayForecast(city);
-      // TODO(lab-1.3): lifecycle log. Replace this print (named fields: city_id, forecast_items).
-      debugPrint(
-          'details fetch done city_id=${city.id} items=${forecast.length}');
     } on IAppException catch (e) {
       _log.e(e);
-      // TODO(lab-1.1): error log. Add telemetry.log(...) (locator<ITelemetry>())
-      // next to the line above: operation, error.type. Never the message.
+      // TODO(lab-1): add a telemetry.log(...) call (locator<ITelemetry>()) next to the line above.
     } finally {
       setBusy(false);
     }

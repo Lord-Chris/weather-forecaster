@@ -137,8 +137,6 @@ class ApiService extends IApi {
       throw convertDioException(e);
     } catch (e) {
       _log.e(e);
-      // TODO(lab-1.1): error log. Add telemetry.log(...) next to the line above:
-      // operation, error.type. Never the message.
       throw AppException(
         data: e,
         message:

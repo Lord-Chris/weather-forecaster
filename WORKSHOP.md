@@ -40,11 +40,7 @@ The attendee tag is added to every log, metric and span so you can find your own
 
 Search for `TODO(lab-N)`.
 
-1. **Logs.** Use the injected `ITelemetry` (`locator<ITelemetry>()`): `telemetry.log(level, message, fields)`. Keep the existing `_log.e` calls and add a telemetry call next to each. Work in this order, search `TODO(lab-1.N)`:
-   1. **Errors first.** The three catch sites (home view model, details view model, `ApiService`). Rare and the most valuable. Fields: `operation`, `error.type`, never the message.
-   2. **Decisions.** The branches in `WeatherRepo` that change what the user sees: `source` (remote or cache), `offline`, `fallback`, `cache_hit`. This is where the silent fallback shows up.
-   3. **Lifecycle and user actions last.** Replace every `debugPrint` (search, card tap, details opened, fetch start) with a structured log and named fields. Noisiest, so least urgent.
-   4. **Wide event.** One `weather.fetch` event per repo call, built up along the method in a plain map and logged once in a `finally`, with `operation`, `city_id`, `connected`, `source`, `fallback`, `cache_hit`, `success`, `error.type` and `duration_ms`. Then delete the per-step fetch logs from steps 2 and 3: one line now tells the whole story.
+1. **Logs.** Use the injected `ITelemetry` (`locator<ITelemetry>()`): `telemetry.log(level, message, fields)`. Keep the existing `_log.e` calls and add a telemetry call next to each. Replace every `debugPrint` with a structured log that has named fields.
 2. **Metrics.** In `WeatherRepo`, add a `weather.fetch.attempts` counter and a `weather.fetch.duration` timing. Stretch: cache-hit ratio, per-city timing.
 3. **Traces.** Add `TelemetryInterceptor` in `ApiService`, make the view models extend `ObservedViewModel` and wrap their work in `observe(...)`. One tap on a city card should give one connected waterfall: view model, request (screen spans are separate).
 4. **Migrating an existing code base (partial).** Instrument without touching every call site: forward existing `package:logger` output to telemetry with a `LogOutput`, and carry the trace with a `Zone` so no span is passed by hand. Metrics approach to be decided.
