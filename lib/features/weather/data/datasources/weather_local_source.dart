@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../services/_services.dart';
+import '../dtos/air_quality_model.dart';
+import '../dtos/city_location_model.dart';
 import '../dtos/forecast_model.dart';
 import '../dtos/weather_model.dart';
 
@@ -56,5 +60,44 @@ class WeatherLocalSource {
       key: cityId,
     );
     return forecast != null ? ForecastModel.fromJson(forecast) : null;
+  }
+
+  /// Caches the air quality reading for a specific city.
+  Future<void> cacheAirQuality(String cityId, AirQualityModel airQuality) async {
+    await _localStorageService.put(
+      StorageKeys.airQualityBox,
+      key: cityId,
+      value: airQuality.toJson(),
+    );
+  }
+
+  /// Retrieves the cached air quality for a city, or null if none is cached.
+  Future<AirQualityModel?> getCachedAirQuality(String cityId) async {
+    final airQuality = await _localStorageService.get(
+      StorageKeys.airQualityBox,
+      key: cityId,
+    );
+    return airQuality != null ? AirQualityModel.fromJson(airQuality) : null;
+  }
+
+  /// Persists the cities the user added through the search screen.
+  Future<void> saveCities(List<CityLocationModel> cities) async {
+    await _localStorageService.put(
+      StorageKeys.savedCitiesBox,
+      key: StorageKeys.savedCitiesKey,
+      value: json.encode(cities.map((e) => e.toMap()).toList()),
+    );
+  }
+
+  /// Returns the cities the user added, or an empty list.
+  Future<List<CityLocationModel>> getSavedCities() async {
+    final raw = await _localStorageService.get(
+      StorageKeys.savedCitiesBox,
+      key: StorageKeys.savedCitiesKey,
+    );
+    if (raw == null) return [];
+    return (json.decode(raw as String) as List)
+        .map((e) => CityLocationModel.fromMap(e as Map<String, dynamic>))
+        .toList();
   }
 }

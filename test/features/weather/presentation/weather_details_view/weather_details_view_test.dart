@@ -184,6 +184,12 @@ void main() {
       (WidgetTester tester) async {
         when(() => viewModel.init(testCityModel)).thenAnswer((_) async {});
         when(() => viewModel.forecast).thenReturn(testForecastModel.list);
+      when(() => viewModel.forecastByDay).thenReturn({
+        DateTime(2022, 8, 30): testForecastModel.list,
+      });
+        when(() => viewModel.forecastByDay).thenReturn({
+          DateTime(2022, 8, 30): testForecastModel.list,
+        });
         when(() => viewModel.city).thenReturn(testCityModel);
         when(() => viewModel.isBusy).thenReturn(false);
 
@@ -195,7 +201,7 @@ void main() {
 
         expect(find.text('Current Weather'), findsOneWidget);
         expect(find.byType(CityItemCard), findsOneWidget);
-        expect(find.byType(ListView), findsExactly(2));
+        expect(find.byType(ListView), findsOneWidget);
         expect(find.byType(ForecastItemCard), findsOneWidget);
       },
     );
@@ -206,6 +212,9 @@ void main() {
       when(() => viewModel.init(testCityModel)).thenAnswer((_) async {});
       when(() => viewModel.fetchForecast()).thenAnswer((_) async {});
       when(() => viewModel.forecast).thenReturn(testForecastModel.list);
+      when(() => viewModel.forecastByDay).thenReturn({
+        DateTime(2022, 8, 30): testForecastModel.list,
+      });
       when(() => viewModel.city).thenReturn(testCityModel);
       when(() => viewModel.isBusy).thenReturn(false);
 

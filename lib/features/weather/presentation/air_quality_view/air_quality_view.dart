@@ -1,0 +1,169 @@
+import 'package:flutter/material.dart';
+import 'package:stacked/stacked.dart';
+
+import '../../../../core/app/_app.dart';
+import '../../../../core/shared/constants/_constants.dart';
+import '../../../../core/shared/widgets/_widgets.dart';
+import '../../data/dtos/air_quality_model.dart';
+import '../../data/dtos/city_location_model.dart';
+import 'air_quality_viewmodel.dart';
+
+class AirQualityView extends StatelessWidget {
+  final CityLocationModel city;
+  const AirQualityView({super.key, required this.city});
+
+  @override
+  Widget build(BuildContext context) {
+    return ViewModelBuilder.reactive(
+      viewModelBuilder: () => locator<AirQualityViewModel>(),
+      onViewModelReady: (viewModel) => viewModel.init(city),
+      builder: (context, viewModel, _) {
+        final airQuality = viewModel.airQuality;
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'Air quality',
+              style: AppTextStyles.semiBold18,
+            ),
+          ),
+          body: RefreshIndicator(
+            onRefresh: viewModel.fetchAirQuality,
+            child: Builder(
+              builder: (context) {
+                if (viewModel.isBusy && airQuality == null) {
+                  return const AppLoader(color: AppColors.biddaPry800);
+                }
+                if (airQuality == null) {
+                  return ListView(
+                    padding: const EdgeInsets.all(24),
+                    children: [
+                      const Text(
+                        'No air quality data available',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.regular14,
+                      ),
+                      Spacing.vertRegular(),
+                      AppButton(
+                        label: 'Refresh',
+                        isCollapsed: true,
+                        onPressed: viewModel.fetchAirQuality,
+                      ),
+                    ],
+                  );
+                }
+                return ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    Text(city.name, style: AppTextStyles.medium16),
+                    Spacing.vertRegular(),
+                    _AqiSummary(airQuality: airQuality),
+                    Spacing.vertMedium(),
+                    const Text(
+                      'Pollutants (μg/m³)',
+                      style: AppTextStyles.medium14,
+                    ),
+                    Spacing.vertSmall(),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 2.2,
+                      children: [
+                        for (final entry in airQuality.components.entries)
+                          _PollutantTile(
+                            name: entry.key,
+                            value: entry.value,
+                          ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AqiSummary extends StatelessWidget {
+  final AirQualityModel airQuality;
+  const _AqiSummary({required this.airQuality});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppColors.aqiColors[(airQuality.aqi - 1).clamp(0, 4)];
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 32,
+            backgroundColor: color,
+            child: Text(
+              '${airQuality.aqi}',
+              style: AppTextStyles.dynamic(
+                28,
+                weight: FontWeight.w700,
+                color: AppColors.white,
+              ),
+            ),
+          ),
+          Spacing.horizRegular(),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(airQuality.aqiLabel, style: AppTextStyles.semiBold24),
+                Text(airQuality.aqiAdvice, style: AppTextStyles.regular14),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PollutantTile extends StatelessWidget {
+  final String name;
+  final double value;
+  const _PollutantTile({required this.name, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              name,
+              style: AppTextStyles.regular12.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            Text(value.toStringAsFixed(1), style: AppTextStyles.semiBold18),
+          ],
+        ),
+      ),
+    );
+  }
+}

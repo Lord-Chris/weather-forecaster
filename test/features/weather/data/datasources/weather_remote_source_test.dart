@@ -3,12 +3,15 @@ import 'package:mocktail/mocktail.dart';
 import 'package:weather_forecast/core/app/_app.dart';
 import 'package:weather_forecast/core/shared/models/_models.dart';
 import 'package:weather_forecast/features/weather/data/datasources/weather_remote_source.dart';
+import 'package:weather_forecast/features/weather/data/dtos/air_quality_model.dart';
 import 'package:weather_forecast/features/weather/data/dtos/city_location_model.dart';
 import 'package:weather_forecast/features/weather/data/dtos/forecast_model.dart';
+import 'package:weather_forecast/features/weather/data/dtos/geo_location_model.dart';
 import 'package:weather_forecast/features/weather/data/dtos/weather_model.dart';
 import 'package:weather_forecast/services/_services.dart';
 
 import '../../../../helpers/service_helpers.dart';
+import '../dtos/air_quality_and_geo_model_test.dart' show airQualityResponse;
 
 void main() {
   const testCityModel = CityLocationModel(
@@ -165,6 +168,45 @@ void main() {
 
         expect(() => remoteSource.get5DayForecast(testCityModel),
             throwsA(isA<ObjectParserAppException>()));
+      });
+    });
+
+    group('getAirQuality', () {
+      test('should return AirQualityModel when the call is successful',
+          () async {
+        when(() => apiService.get(any()))
+            .thenAnswer((_) async => airQualityResponse);
+
+        final result = await remoteSource.getAirQuality(testCityModel);
+
+        expect(result, isA<AirQualityModel>());
+        expect(result.aqi, 3);
+      });
+
+      test('should throw an app exception when the call is unsuccessful', () {
+        when(() => apiService.get(any())).thenThrow(InternetAppException());
+
+        expect(() => remoteSource.getAirQuality(testCityModel),
+            throwsA(isA<InternetAppException>()));
+      });
+    });
+
+    group('searchCities', () {
+      test('should return the places wrapped under the data key', () async {
+        when(() => apiService.get(any())).thenAnswer((_) async => {
+              'data': [
+                {'name': 'Lagos', 'lat': 6.45, 'lon': 3.39, 'country': 'NG'},
+              ],
+            });
+
+        final result = await remoteSource.searchCities('Lagos');
+
+        expect(result, isA<List<GeoLocationModel>>());
+        expect(result.single.name, 'Lagos');
+        final uri = verify(() => apiService.get(captureAny())).captured.single
+            as Uri;
+        expect(uri.path, '/geo/1.0/direct');
+        expect(uri.queryParameters['q'], 'Lagos');
       });
     });
   });

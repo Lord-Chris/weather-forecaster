@@ -3,6 +3,7 @@ import '../../../features/weather/data/dtos/city_location_model.dart';
 class AppConstants {
   static const appName = 'Weather Forecaster';
   static const basePath = 'https://api.openweathermap.org/data/2.5/';
+  static const geoPath = 'https://api.openweathermap.org/geo/1.0/';
 
   static const cities = [
     CityLocationModel(

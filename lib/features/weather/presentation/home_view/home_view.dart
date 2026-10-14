@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 
 import '../../../../core/app/_app.dart';
+import '../../../../core/extensions/context_extenstion.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/widgets/_widgets.dart';
 import '../widgets/city_item_card.dart';
@@ -14,7 +16,7 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
         viewModelBuilder: () => locator<HomeViewModel>(),
-        onViewModelReady: (viewModel) => viewModel.getCurrentWeather(),
+        onViewModelReady: (viewModel) => viewModel.init(),
         builder: (context, viewModel, _) {
           return Scaffold(
             body: SafeArea(
@@ -22,9 +24,31 @@ class HomeView extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    const Text(
-                      AppConstants.appName,
-                      style: AppTextStyles.semiBold24,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                AppConstants.appName,
+                                style: AppTextStyles.semiBold24,
+                              ),
+                              Text(
+                                DateFormat.MMMMEEEEd().format(DateTime.now()),
+                                style: AppTextStyles.regular14.copyWith(
+                                  color: context.cScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton.filledTonal(
+                          tooltip: 'Add city',
+                          onPressed: viewModel.onAddCityTap,
+                          icon: const Icon(Icons.add_location_alt_outlined),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     if (viewModel.allCities.isNotEmpty)
@@ -33,6 +57,7 @@ class HomeView extends StatelessWidget {
                         hint: 'Search city',
                         keyboardType: TextInputType.text,
                         textCapitalization: TextCapitalization.words,
+                        prefix: const Icon(Icons.search),
                       ),
                     Builder(
                       builder: (context) {

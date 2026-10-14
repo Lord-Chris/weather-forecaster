@@ -5,6 +5,7 @@ import 'package:weather_forecast/core/shared/models/_models.dart';
 import 'package:weather_forecast/core/shared/models/app_exception.dart';
 import 'package:weather_forecast/features/weather/data/datasources/weather_local_source.dart';
 import 'package:weather_forecast/features/weather/data/datasources/weather_remote_source.dart';
+import 'package:weather_forecast/features/weather/data/dtos/air_quality_model.dart';
 import 'package:weather_forecast/features/weather/data/dtos/city_location_model.dart';
 import 'package:weather_forecast/features/weather/data/dtos/forecast_model.dart';
 import 'package:weather_forecast/features/weather/data/dtos/weather_model.dart';
@@ -13,6 +14,7 @@ import 'package:weather_forecast/services/_services.dart';
 
 import '../../../../helpers/data_helpers.dart';
 import '../../../../helpers/service_helpers.dart';
+import '../dtos/air_quality_and_geo_model_test.dart' show airQualityResponse;
 
 void main() {
   const testCityModel = CityLocationModel(
@@ -101,6 +103,12 @@ void main() {
       'sunset': 1661882248
     }
   });
+  setUpAll(() {
+    registerFallbackValue(testCityModel);
+    registerFallbackValue(AirQualityModel.fromMap(airQualityResponse));
+    registerFallbackValue(<CityLocationModel>[]);
+  });
+
   group('WeatherRepo Tests - ', () {
     late WeatherLocalSource localSource;
     late WeatherRemoteSource remoteSource;
@@ -252,6 +260,85 @@ void main() {
 
         expect(() => repo.get5DayForecast(testCityModel),
             throwsA(isA<FallbackAppException>()));
+      });
+    });
+
+    group('getAirQuality - ', () {
+      final airQuality = AirQualityModel.fromMap(airQualityResponse);
+
+      test('should fetch and cache when online', () async {
+        when(() => connectivityService.checkInternetConnection())
+            .thenAnswer((_) async => true);
+        when(() => remoteSource.getAirQuality(testCityModel))
+            .thenAnswer((_) async => airQuality);
+        when(() => localSource.cacheAirQuality(any(), any()))
+            .thenAnswer((_) async {});
+
+        final result = await repo.getAirQuality(testCityModel);
+
+        expect(result, airQuality);
+        verify(() => localSource.cacheAirQuality('1', airQuality)).called(1);
+      });
+
+      test('should return the cache when offline', () async {
+        when(() => connectivityService.checkInternetConnection())
+            .thenAnswer((_) async => false);
+        when(() => localSource.getCachedAirQuality('1'))
+            .thenAnswer((_) async => airQuality);
+
+        final result = await repo.getAirQuality(testCityModel);
+
+        expect(result, airQuality);
+        verifyNever(() => remoteSource.getAirQuality(any()));
+      });
+
+      test('should wrap unknown errors in FallbackAppException', () {
+        when(() => connectivityService.checkInternetConnection())
+            .thenAnswer((_) async => true);
+        when(() => remoteSource.getAirQuality(testCityModel))
+            .thenThrow(StateError('boom'));
+
+        expect(() => repo.getAirQuality(testCityModel),
+            throwsA(isA<FallbackAppException>()));
+      });
+    });
+
+    group('searchCities - ', () {
+      test('should throw InternetAppException when offline', () {
+        when(() => connectivityService.checkInternetConnection())
+            .thenAnswer((_) async => false);
+
+        expect(() => repo.searchCities('Lagos'),
+            throwsA(isA<InternetAppException>()));
+      });
+
+      test('should return the remote results when online', () async {
+        when(() => connectivityService.checkInternetConnection())
+            .thenAnswer((_) async => true);
+        when(() => remoteSource.searchCities('Lagos'))
+            .thenAnswer((_) async => []);
+
+        expect(await repo.searchCities('Lagos'), isEmpty);
+      });
+    });
+
+    group('saveCity - ', () {
+      test('should append a new city to the saved list', () async {
+        when(() => localSource.getSavedCities()).thenAnswer((_) async => []);
+        when(() => localSource.saveCities(any())).thenAnswer((_) async {});
+
+        await repo.saveCity(testCityModel);
+
+        verify(() => localSource.saveCities([testCityModel])).called(1);
+      });
+
+      test('should not save a duplicate', () async {
+        when(() => localSource.getSavedCities())
+            .thenAnswer((_) async => [testCityModel]);
+
+        await repo.saveCity(testCityModel);
+
+        verifyNever(() => localSource.saveCities(any()));
       });
     });
   });

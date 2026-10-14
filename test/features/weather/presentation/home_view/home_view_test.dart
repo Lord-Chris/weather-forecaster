@@ -68,14 +68,15 @@ void main() {
     testWidgets(
         'should show the text `Weather Forecaster` and a loader when the view is loading initially',
         (tester) async {
+      when(() => viewModel.init()).thenAnswer((_) async {});
       when(() => viewModel.getCurrentWeather())
-          .thenAnswer((_) async => testCityModel);
+          .thenAnswer((_) async {});
       when(() => viewModel.allCities).thenReturn([]);
       when(() => viewModel.isBusy).thenReturn(true);
       when(() => viewModel.cities).thenReturn([]);
 
       await tester.pumpWidget(buildTestableWidget(const HomeView()));
-      verify(() => viewModel.getCurrentWeather()).called(1);
+      verify(() => viewModel.init()).called(1);
       verify(() => viewModel.allCities).called(1);
 
       final header = find.text('Weather Forecaster');
@@ -88,8 +89,9 @@ void main() {
     testWidgets(
         'should show the text `No cities found` when the view is loaded and no cities are available',
         (tester) async {
+      when(() => viewModel.init()).thenAnswer((_) async {});
       when(() => viewModel.getCurrentWeather())
-          .thenAnswer((_) async => testCityModel);
+          .thenAnswer((_) async {});
       when(() => viewModel.allCities).thenReturn([]);
       when(() => viewModel.isBusy).thenReturn(false);
       when(() => viewModel.cities).thenReturn([]);
@@ -108,14 +110,15 @@ void main() {
     testWidgets(
         'verify that viewModel.getCurrentWeather is called when refresh button is clicked and no cities are available',
         (tester) async {
+      when(() => viewModel.init()).thenAnswer((_) async {});
       when(() => viewModel.getCurrentWeather())
-          .thenAnswer((_) async => testCityModel);
+          .thenAnswer((_) async {});
       when(() => viewModel.allCities).thenReturn([]);
       when(() => viewModel.isBusy).thenReturn(false);
       when(() => viewModel.cities).thenReturn([]);
 
       await tester.pumpWidget(buildTestableWidget(const HomeView()));
-      verify(() => viewModel.getCurrentWeather()).called(1);
+      verify(() => viewModel.init()).called(1);
       expect(viewModel.allCities, isEmpty);
 
       final noCitiesavailable = find.text('No cities available');
@@ -129,8 +132,9 @@ void main() {
     testWidgets(
         'should show a search field and a list of cities when the view is loaded and cities are available',
         (tester) async {
+      when(() => viewModel.init()).thenAnswer((_) async {});
       when(() => viewModel.getCurrentWeather())
-          .thenAnswer((_) async => testCityModel);
+          .thenAnswer((_) async {});
       when(() => viewModel.allCities).thenReturn([testCityModel]);
       when(() => viewModel.isBusy).thenReturn(false);
       when(() => viewModel.cities).thenReturn([testCityModel]);
@@ -150,14 +154,15 @@ void main() {
     testWidgets(
         'verify that viewModel.getCurrentWeather is called when pull to refresh is triggered',
         (tester) async {
+      when(() => viewModel.init()).thenAnswer((_) async {});
       when(() => viewModel.getCurrentWeather())
-          .thenAnswer((_) async => testCityModel);
+          .thenAnswer((_) async {});
       when(() => viewModel.allCities).thenReturn([testCityModel]);
       when(() => viewModel.isBusy).thenReturn(false);
       when(() => viewModel.cities).thenReturn([testCityModel]);
 
       await tester.pumpWidget(buildTestableWidget(const HomeView()));
-      verify(() => viewModel.getCurrentWeather()).called(1);
+      verify(() => viewModel.init()).called(1);
 
       final cityList = find.byType(ListView);
       expect(cityList, findsOneWidget);

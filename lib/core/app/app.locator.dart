@@ -1,4 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format width=80
 
 // **************************************************************************
 // StackedLocatorGenerator
@@ -12,6 +13,8 @@ import 'package:stacked_shared/stacked_shared.dart';
 import '../../features/weather/data/datasources/weather_local_source.dart';
 import '../../features/weather/data/datasources/weather_remote_source.dart';
 import '../../features/weather/data/repositories/weather_repo.dart';
+import '../../features/weather/presentation/add_city_view/add_city_viewmodel.dart';
+import '../../features/weather/presentation/air_quality_view/air_quality_viewmodel.dart';
 import '../../features/weather/presentation/home_view/home_viewmodel.dart';
 import '../../features/weather/presentation/weather_details_view/weather_details_viewmodel.dart';
 import '../../services/api/api_service.dart';
@@ -25,10 +28,8 @@ import '../telemetry/telemetry_impl.dart';
 
 final locator = StackedLocator.instance;
 
-Future<void> setupLocator({
-  String? environment,
-  EnvironmentFilter? environmentFilter,
-}) async {
+Future<void> setupLocator(
+    {String? environment, EnvironmentFilter? environmentFilter}) async {
 // Register environments
   locator.registerEnvironment(
       environment: environment, environmentFilter: environmentFilter);
@@ -47,4 +48,6 @@ Future<void> setupLocator({
   locator.registerFactory(() => WeatherLocalSource());
   locator.registerFactory(() => HomeViewModel());
   locator.registerFactory(() => WeatherDetailsViewModel());
+  locator.registerFactory(() => AirQualityViewModel());
+  locator.registerFactory(() => AddCityViewModel());
 }

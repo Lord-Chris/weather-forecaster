@@ -7,6 +7,7 @@ import 'package:weather_forecast/features/weather/data/repositories/weather_repo
 import 'package:weather_forecast/features/weather/presentation/weather_details_view/weather_details_viewmodel.dart';
 
 import '../../../../helpers/data_helpers.dart';
+import '../../../../helpers/service_helpers.dart';
 
 void main() {
   const testCityModel = CityLocationModel(
@@ -66,6 +67,7 @@ void main() {
     late WeatherDetailsViewModel viewModel;
 
     setUp(() {
+      registerServices();
       registerDataLayers();
       registerFallbackValue(testCityModel);
 
@@ -75,6 +77,7 @@ void main() {
 
     tearDown(() {
       unregisterDataLayers();
+      unregisterServices();
     });
 
     group('init - ', () {

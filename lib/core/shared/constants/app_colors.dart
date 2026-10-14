@@ -20,4 +20,18 @@ class AppColors {
   static const gray600 = Color(0XFF475467);
   static const gray700 = Color(0XFF344054);
   static const gray900 = Color(0XFF101828);
+
+  /// Dark theme
+  static const darkBackground = Color(0XFF0B1220);
+  static const darkSurface = Color(0XFF151E30);
+  static const darkOutline = Color(0XFF2A3550);
+
+  /// Air quality index levels, 1 (good) to 5 (very poor).
+  static const aqiColors = [
+    Color(0XFF12B76A),
+    Color(0XFF84CC16),
+    Color(0XFFF79009),
+    Color(0XFFF04438),
+    Color(0XFF9E2A9E),
+  ];
 }

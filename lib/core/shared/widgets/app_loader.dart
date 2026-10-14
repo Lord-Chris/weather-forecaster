@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/_constants.dart';
@@ -24,7 +23,7 @@ class AppLoader extends StatelessWidget {
         child: SizedBox(
           height: size,
           width: size,
-          child: Platform.isAndroid
+          child: defaultTargetPlatform == TargetPlatform.android
               ? CircularProgressIndicator(
                   color: color,
                 )

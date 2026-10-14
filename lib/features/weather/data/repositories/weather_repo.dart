@@ -6,8 +6,10 @@ import '../../../../core/shared/models/_models.dart';
 import '../../../../services/_services.dart';
 import '../datasources/weather_local_source.dart';
 import '../datasources/weather_remote_source.dart';
+import '../dtos/air_quality_model.dart';
 import '../dtos/city_location_model.dart';
 import '../dtos/forecast_model.dart';
+import '../dtos/geo_location_model.dart';
 import '../dtos/weather_model.dart';
 
 /// Repository class for fetching weather data.
@@ -102,5 +104,50 @@ class WeatherRepo {
     } catch (e) {
       throw FallbackAppException(data: e);
     }
+  }
+
+  /// Retrieves the air quality for the specified city, falling back to the
+  /// cache when offline.
+  ///
+  /// Throws [IAppException] if an application-specific exception occurs.
+  /// Throws [FallbackAppException] if a fallback exception occurs.
+  Future<AirQualityModel?> getAirQuality(CityLocationModel city) async {
+    try {
+      if (await isConnected) {
+        final airQuality = await _remoteSource.getAirQuality(city);
+        await _localSource.cacheAirQuality(city.id, airQuality);
+        return airQuality;
+      }
+      return await _localSource.getCachedAirQuality(city.id);
+    } on IAppException {
+      rethrow;
+    } catch (e) {
+      throw FallbackAppException(data: e);
+    }
+  }
+
+  /// Searches places by name. Needs a connection.
+  ///
+  /// Throws [InternetAppException] when offline.
+  Future<List<GeoLocationModel>> searchCities(String query) async {
+    try {
+      if (!await isConnected) throw InternetAppException();
+      return await _remoteSource.searchCities(query);
+    } on IAppException {
+      rethrow;
+    } catch (e) {
+      throw FallbackAppException(data: e);
+    }
+  }
+
+  /// Returns the cities the user added.
+  Future<List<CityLocationModel>> getSavedCities() =>
+      _localSource.getSavedCities();
+
+  /// Saves [city] if it isn't already saved or one of the default cities.
+  Future<void> saveCity(CityLocationModel city) async {
+    final saved = await _localSource.getSavedCities();
+    if (saved.any((e) => e.id == city.id)) return;
+    await _localSource.saveCities([...saved, city]);
   }
 }

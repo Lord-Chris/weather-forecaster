@@ -132,7 +132,10 @@ class ApiService extends IApi {
             AppException.fromHttpErrorMap(json.decode(response.data));
         throw exception;
       }
-      return response.data;
+      final data = response.data;
+      // Some endpoints (e.g. geocoding) answer with a JSON array.
+      if (data is List) return {'data': data};
+      return data;
     } on DioException catch (e) {
       throw convertDioException(e);
     } catch (e) {

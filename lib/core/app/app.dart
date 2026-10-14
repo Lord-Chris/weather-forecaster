@@ -4,6 +4,10 @@ import 'package:stacked_services/stacked_services.dart';
 import '../../features/weather/data/datasources/weather_local_source.dart';
 import '../../features/weather/data/datasources/weather_remote_source.dart';
 import '../../features/weather/data/repositories/weather_repo.dart';
+import '../../features/weather/presentation/add_city_view/add_city_view.dart';
+import '../../features/weather/presentation/add_city_view/add_city_viewmodel.dart';
+import '../../features/weather/presentation/air_quality_view/air_quality_view.dart';
+import '../../features/weather/presentation/air_quality_view/air_quality_viewmodel.dart';
 import '../../features/weather/presentation/home_view/home_view.dart';
 import '../../features/weather/presentation/home_view/home_viewmodel.dart';
 import '../../features/weather/presentation/weather_details_view/weather_details_view.dart';
@@ -18,6 +22,8 @@ import '../telemetry/_telemetry.dart';
   routes: [
     AdaptiveRoute(page: HomeView, initial: true),
     AdaptiveRoute(page: WeatherDetailsView),
+    AdaptiveRoute(page: AirQualityView),
+    AdaptiveRoute(page: AddCityView),
   ],
   dependencies: [
     /// Services
@@ -40,6 +46,8 @@ import '../telemetry/_telemetry.dart';
     /// View models
     Factory(classType: HomeViewModel),
     Factory(classType: WeatherDetailsViewModel),
+    Factory(classType: AirQualityViewModel),
+    Factory(classType: AddCityViewModel),
   ],
   logger: StackedLogger(),
 )

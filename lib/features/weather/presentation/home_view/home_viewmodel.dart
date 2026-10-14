@@ -38,9 +38,7 @@ class HomeViewModel extends BaseViewModel {
     // e.g. query_length, city_id.
     debugPrint('search changed length=${value.length}');
     searchedCities.clear();
-    if (value.isEmpty) {
-      notifyListeners();
-    } else {
+    if (value.isNotEmpty) {
       searchedCities.addAll(
         allCities.where(
           (city) => city.name.toLowerCase().contains(value.toLowerCase()),
@@ -48,6 +46,23 @@ class HomeViewModel extends BaseViewModel {
       );
     }
     notifyListeners();
+  }
+
+  /// Loads the cities the user added, then fetches the weather for all cities.
+  Future<void> init() async {
+    try {
+      final saved = await _weatherRepo.getSavedCities();
+      allCities = [...AppConstants.cities, ...saved];
+    } catch (e) {
+      _log.e(e);
+    }
+    await getCurrentWeather();
+  }
+
+  /// Opens the search screen and reloads the list if a city was added.
+  Future<void> onAddCityTap() async {
+    final added = await _navigationService.navigateTo(Routes.addCityView);
+    if (added == true) await init();
   }
 
   /// Retrieves the current weather for multiple cities.
@@ -63,12 +78,12 @@ class HomeViewModel extends BaseViewModel {
     try {
       setBusy(true);
       final res = await Future.wait(
-        cities.map((city) => _weatherRepo.getCurrentWeather(city)),
+        allCities.map((city) => _weatherRepo.getCurrentWeather(city)),
       );
       var newCities = <CityLocationModel>[];
 
-      for (var i = 0; i < cities.length; i++) {
-        newCities.add(cities[i].copyWith(weather: res[i]));
+      for (var i = 0; i < allCities.length; i++) {
+        newCities.add(allCities[i].copyWith(weather: res[i]));
       }
       allCities = newCities;
     } on IAppException catch (e) {

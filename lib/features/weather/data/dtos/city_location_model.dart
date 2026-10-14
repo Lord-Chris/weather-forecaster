@@ -17,6 +17,23 @@ class CityLocationModel extends Equatable {
     this.weather,
   });
 
+  /// Persists only the location; the weather is always re-fetched.
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'name': name,
+        'lat': lat,
+        'lon': lon,
+      };
+
+  factory CityLocationModel.fromMap(Map<String, dynamic> map) {
+    return CityLocationModel(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      lat: (map['lat'] as num).toDouble(),
+      lon: (map['lon'] as num).toDouble(),
+    );
+  }
+
   @override
   List<Object?> get props {
     return [

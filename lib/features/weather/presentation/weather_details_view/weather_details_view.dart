@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 
 import '../../../../core/app/_app.dart';
@@ -45,6 +46,15 @@ class WeatherDetailsView extends StatelessWidget {
                       ),
                       Spacing.vertSmall(),
                       CityItemCard(city: viewModel.city),
+                      Spacing.vertRegular(),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: viewModel.onAirQualityTap,
+                          icon: const Icon(Icons.air),
+                          label: const Text('Air quality'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -87,16 +97,19 @@ class WeatherDetailsView extends StatelessWidget {
                           style: AppTextStyles.medium14,
                         ),
                         Spacing.vertSmall(),
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: viewModel.forecast.length,
-                          separatorBuilder: (_, __) => Spacing.vertRegular(),
-                          itemBuilder: (context, index) {
-                            final weather = viewModel.forecast[index];
-                            return ForecastItemCard(weather: weather);
-                          },
-                        ),
+                        for (final day in viewModel.forecastByDay.entries) ...[
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16, bottom: 8),
+                            child: Text(
+                              DateFormat.MMMEd().format(day.key),
+                              style: AppTextStyles.semiBold16,
+                            ),
+                          ),
+                          for (final weather in day.value) ...[
+                            ForecastItemCard(weather: weather),
+                            Spacing.vertSmall(),
+                          ],
+                        ],
                       ],
                     ),
                   );

@@ -14,6 +14,8 @@ class WeatherDetailsViewModel extends BaseViewModel {
   final _log = getLogger('WeatherDetailsViewModel');
   final _weatherRepo = locator<WeatherRepo>();
 
+  final _navigationService = locator<NavigationService>();
+
   late CityLocationModel city;
   ForecastModel? _forecast;
 
@@ -43,6 +45,25 @@ class WeatherDetailsViewModel extends BaseViewModel {
     } finally {
       setBusy(false);
     }
+  }
+
+  /// Opens the air quality screen for the current city.
+  void onAirQualityTap() {
+    _navigationService.navigateTo(
+      Routes.airQualityView,
+      arguments: AirQualityViewArguments(city: city),
+    );
+  }
+
+  /// Forecast entries grouped by calendar day, in chronological order.
+  Map<DateTime, List<ListElement>> get forecastByDay {
+    final days = <DateTime, List<ListElement>>{};
+    for (final item in forecast) {
+      final time = DateTime.fromMillisecondsSinceEpoch(item.dt * 1000);
+      final day = DateTime(time.year, time.month, time.day);
+      days.putIfAbsent(day, () => []).add(item);
+    }
+    return days;
   }
 
   List<ListElement> get forecast => _forecast?.list ?? [];

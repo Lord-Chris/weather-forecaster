@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/num_extension.dart';
 import '../../../../core/extensions/string_extension.dart';
 import '../../../../core/shared/constants/_constants.dart';
+import '../../../../core/shared/widgets/_widgets.dart';
 import '../../data/dtos/forecast_model.dart';
 
 class ForecastItemCard extends StatelessWidget {
@@ -14,69 +16,56 @@ class ForecastItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final condition = weather.weather.firstOrNull;
+
     return Card(
       margin: EdgeInsets.zero,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant),
       ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        weather.weather.firstOrNull?.description
-                                .capitalizeString() ??
-                            '',
-                        style: AppTextStyles.medium16,
-                      ),
-                    ),
-                    Spacing.horizRegular(),
-                    Text(
-                      weather.parsedDate.toString(),
-                      style: AppTextStyles.regular14,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Spacer(),
-                    Spacing.horizRegular(),
-                    Text(
-                      weather.parsedTime,
-                      style: AppTextStyles.regular12,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Min Temp: ${weather.main.tempMin}',
-                    style: AppTextStyles.regular12,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            WeatherIcon(icon: condition?.icon, size: 48),
+            Spacing.horizSmall(),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    condition?.description.capitalizeString() ?? '',
+                    style: AppTextStyles.medium16,
                   ),
+                  Text(
+                    '${weather.parsedDate}  ${weather.parsedTime}',
+                    style: AppTextStyles.regular12.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  weather.main.tempMax.asCelsius,
+                  style: AppTextStyles.semiBold18,
                 ),
-                Spacing.horizRegular(),
-                Expanded(
-                  child: Text(
-                    'Max Temp: ${weather.main.tempMax}',
-                    style: AppTextStyles.regular12,
+                Text(
+                  weather.main.tempMin.asCelsius,
+                  style: AppTextStyles.regular14.copyWith(
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
