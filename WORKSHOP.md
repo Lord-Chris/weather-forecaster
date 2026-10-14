@@ -5,7 +5,7 @@ The app talks only to a small telemetry layer in [lib/core/telemetry/](lib/core/
 ## Run
 
 ```sh
-flutter run --dart-define=ATTENDEE=<your-name> --dart-define=OPEN_WEATHER_KEY=...
+flutter run --dart-define=ATTENDEE=<your-name> --dart-define=OPEN_WEATHER_API_KEY=...
 ```
 
 The attendee tag is added to every log, metric and span so you can find your own data.
