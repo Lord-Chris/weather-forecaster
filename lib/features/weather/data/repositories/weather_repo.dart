@@ -29,10 +29,20 @@ class WeatherRepo {
   /// Throws [IAppException] if an application-specific exception occurs.
   /// Throws [FallbackAppException] if a fallback exception occurs.
   Future<WeatherModel?> getCurrentWeather(CityLocationModel city) async {
+    // TODO(lab-1.4) Wide event: start a Stopwatch and a
+    // `final event = <String, Object?>{'operation': 'getCurrentWeather',
+    // 'city_id': city.id}` here, fill it as the branches below run (connected,
+    // source, fallback, cache_hit, error.type), and log it ONCE in a `finally`
+    // with duration_ms. Do the same in get5DayForecast, then delete the fetch
+    // start/done prints from steps 2 and 3: one line now tells the whole story.
     // TODO(lab-2): count this attempt (`weather.fetch.attempts`) and time the
     // whole call (`weather.fetch.duration`) with ITelemetry.counter / timing.
     debugPrint('weather fetch start city_id=${city.id}');
     try {
+      // TODO(lab-1.2) Decision logs: log each branch that changes what the user
+      // sees (the three prints below and the cache miss in _cachedWeather, plus
+      // the same branches in get5DayForecast) with named fields: source,
+      // offline, fallback, cache_hit.
       if (await isConnected) {
         try {
           final weather = await _remoteSource.getCurrentWeather(city);
@@ -45,18 +55,24 @@ class WeatherRepo {
           // The only evidence is the fallback marker on the line below.
           debugPrint(
               'weather fetch done city_id=${city.id} source=cache fallback=true error=${e.runtimeType}');
-          return await _localSource.getCachedCurrentWeather(city.id);
+          return await _cachedWeather(city);
         }
       } else {
         debugPrint(
             'weather fetch done city_id=${city.id} source=cache offline=true');
-        return await _localSource.getCachedCurrentWeather(city.id);
+        return await _cachedWeather(city);
       }
     } on IAppException {
       rethrow;
     } catch (e) {
       throw FallbackAppException(data: e);
     }
+  }
+
+  Future<WeatherModel?> _cachedWeather(CityLocationModel city) async {
+    final cached = await _localSource.getCachedCurrentWeather(city.id);
+    if (cached == null) debugPrint('weather cache miss city_id=${city.id}');
+    return cached;
   }
 
   /// Retrieves the 5-day weather forecast for the specified city.
@@ -73,9 +89,13 @@ class WeatherRepo {
       if (await isConnected) {
         final forecast = await _remoteSource.get5DayForecast(city);
         await _localSource.cacheForecast(city.id, forecast);
+        debugPrint('forecast fetch done city_id=${city.id} source=remote');
         return forecast;
       } else {
-        return await _localSource.getCachedForecast(city.id);
+        final cached = await _localSource.getCachedForecast(city.id);
+        debugPrint(
+            'forecast fetch done city_id=${city.id} source=cache offline=true cache_hit=${cached != null}');
+        return cached;
       }
     } on IAppException {
       rethrow;

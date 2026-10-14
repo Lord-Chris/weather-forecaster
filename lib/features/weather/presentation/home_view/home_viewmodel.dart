@@ -32,6 +32,10 @@ class HomeViewModel extends BaseViewModel {
   /// Finally, it notifies the listeners again after updating the [searchedCities] list.
   void onSearchQueryChanged(String value) {
     searchQuery = value;
+    // TODO(lab-1.3) Lifecycle logs, touch these last (noisy): replace every
+    // debugPrint (here, onCardTap, WeatherDetailsViewModel.init and the fetch
+    // start prints in WeatherRepo) with a structured log and named fields,
+    // e.g. query_length, city_id.
     debugPrint('search changed length=${value.length}');
     searchedCities.clear();
     if (value.isEmpty) {
@@ -69,8 +73,11 @@ class HomeViewModel extends BaseViewModel {
       allCities = newCities;
     } on IAppException catch (e) {
       _log.e(e);
-      // TODO(lab-1): add a telemetry.log(...) call (locator<ITelemetry>()) next to the line above, with
-      // named fields (error type only, never the message).
+      // TODO(lab-1.1) Error logs, touch these first (rare, most valuable): add
+      // telemetry.log(...) (locator<ITelemetry>()) next to the line above, and
+      // at the same kind of catch in WeatherDetailsViewModel.fetchForecast and
+      // ApiService._performRequest. Fields: operation, error.type. Never the
+      // message.
     } finally {
       setBusy(false);
     }
