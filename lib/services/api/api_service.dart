@@ -26,7 +26,7 @@ class ApiService extends IApi {
         'Connection': 'keep-alive',
       };
     dio.interceptors.addAll([
-      // TODO(lab-3): add TelemetryInterceptor() here to get one span per request.
+      // TODO(lab-3): add TelemetryInterceptor(locator<ITelemetry>()) here to get one span per request.
       ApiLoggerInterceptor(),
       if (kDebugMode && FaultInjectionInterceptor.isEnabled)
         FaultInjectionInterceptor(dio),

@@ -69,7 +69,7 @@ class HomeViewModel extends BaseViewModel {
       allCities = newCities;
     } on IAppException catch (e) {
       _log.e(e);
-      // TODO(lab-1): add a Telemetry.log(...) call next to the line above, with
+      // TODO(lab-1): add a telemetry.log(...) call (locator<ITelemetry>()) next to the line above, with
       // named fields (error type only, never the message).
     } finally {
       setBusy(false);

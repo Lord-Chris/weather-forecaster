@@ -29,7 +29,7 @@ The attendee tag is added to every log, metric and span so you can find your own
 ## Privacy rules (enforced in the layer)
 
 - Errors are recorded by type only, never the message.
-- Attributes named like `name`, `city`, `token`, `appid`, `amount`, `message` are dropped.
+- Attributes named `name`, `city`, `token`, `appid` or `amount` are dropped.
 - URLs lose their query string (the API key lives there).
 - Identifiers only where needed, such as `city_id`.
 
@@ -37,12 +37,12 @@ The attendee tag is added to every log, metric and span so you can find your own
 
 Search for `TODO(lab-N)`.
 
-1. **Logs.** `Telemetry.log(level, message, fields)` is a static facade, fine for this lab. Keep the existing `_log.e` calls and add a telemetry call next to each. Replace every `debugPrint` with a structured log that has named fields.
+1. **Logs.** Use the injected `ITelemetry` (`locator<ITelemetry>()`): `telemetry.log(level, message, fields)`. Keep the existing `_log.e` calls and add a telemetry call next to each. Replace every `debugPrint` with a structured log that has named fields.
 2. **Metrics.** In `WeatherRepo`, add a `weather.fetch.attempts` counter and a `weather.fetch.duration` timing. Stretch: cache-hit ratio, per-city timing.
-3. **Traces.** Add `TelemetryInterceptor` in `ApiService`, make the view models extend `ObservedViewModel` and wrap their work in `observe(...)`. One tap on a city card should give one connected waterfall: screen, view model, request.
+3. **Traces.** Add `TelemetryInterceptor` in `ApiService`, make the view models extend `ObservedViewModel` and wrap their work in `observe(...)`. One tap on a city card should give one connected waterfall: view model, request (screen spans are separate).
 4. **Migrating an existing code base (partial).** Instrument without touching every call site: forward existing `package:logger` output to telemetry with a `LogOutput`, and carry the trace with a `Zone` so no span is passed by hand. Metrics approach to be decided.
 
-Outside Lab 1, prefer injecting `ITelemetry` (registered in the locator) over the static facade, so tests can use `InMemoryExporter`.
+Outside Lab 1, `ITelemetry` is injected everywhere (registered in the locator), so tests can swap in `InMemoryExporter`.
 
 ## Branches
 

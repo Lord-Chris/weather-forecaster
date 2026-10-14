@@ -1,6 +1,6 @@
 export 'i_telemetry.dart';
 export 'span.dart';
-export 'telemetry.dart';
+export 'telemetry_impl.dart';
 export 'telemetry_exporter.dart';
 export 'telemetry_record.dart';
 export 'telemetry_sanitizer.dart';

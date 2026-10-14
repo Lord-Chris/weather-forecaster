@@ -21,7 +21,7 @@ import '../../services/connectivity_service/i_connectivity_service.dart';
 import '../../services/local_storage/i_local_storage.dart';
 import '../../services/local_storage/local_storage_service.dart';
 import '../telemetry/i_telemetry.dart';
-import '../telemetry/telemetry.dart';
+import '../telemetry/telemetry_impl.dart';
 
 final locator = StackedLocator.instance;
 

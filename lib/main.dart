@@ -12,7 +12,6 @@ void main() async {
 
 Future<void> _initServices() async {
   await setupLocator();
-  Telemetry.setInstance(locator<ITelemetry>());
 }
 
 class WeatherForecastApp extends StatelessWidget {
@@ -27,7 +26,7 @@ class WeatherForecastApp extends StatelessWidget {
       onGenerateRoute: StackedRouter().onGenerateRoute,
       navigatorObservers: [
         StackedService.routeObserver,
-        TelemetryRouteObserver(),
+        TelemetryRouteObserver(locator<ITelemetry>()),
       ],
     );
   }

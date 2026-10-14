@@ -11,8 +11,7 @@ class TelemetryInterceptor extends Interceptor {
 
   final ITelemetry _telemetry;
 
-  TelemetryInterceptor([ITelemetry? telemetry])
-      : _telemetry = telemetry ?? Telemetry.instance;
+  TelemetryInterceptor(this._telemetry);
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
