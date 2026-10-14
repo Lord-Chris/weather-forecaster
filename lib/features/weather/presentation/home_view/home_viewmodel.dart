@@ -32,10 +32,9 @@ class HomeViewModel extends BaseViewModel {
   /// Finally, it notifies the listeners again after updating the [searchedCities] list.
   void onSearchQueryChanged(String value) {
     searchQuery = value;
-    // TODO(lab-1.3) Lifecycle logs, touch these last (noisy): replace every
-    // debugPrint (here, onCardTap, WeatherDetailsViewModel.init and the fetch
-    // start prints in WeatherRepo) with a structured log and named fields,
-    // e.g. query_length, city_id.
+    // TODO(lab-1.6) Lifecycle: user input. Replace the print here, in
+    // AddCityViewModel.onQueryChanged and onResultTap with a structured log and
+    // named fields (query_length, city_id). Noisy, so touch these late.
     debugPrint('search changed length=${value.length}');
     searchedCities.clear();
     if (value.isNotEmpty) {
@@ -50,6 +49,10 @@ class HomeViewModel extends BaseViewModel {
 
   /// Loads the cities the user added, then fetches the weather for all cities.
   Future<void> init() async {
+    // TODO(lab-1.10) Wide event: home load. One `home.load` event for the whole
+    // flow, logged once in a `finally`: default_cities, saved_cities,
+    // cities_loaded, cities_failed, duration_ms. getCurrentWeather() runs one
+    // fetch per city, so this event summarises many of the step 1.8 events.
     try {
       final saved = await _weatherRepo.getSavedCities();
       allCities = [...AppConstants.cities, ...saved];
@@ -61,6 +64,7 @@ class HomeViewModel extends BaseViewModel {
 
   /// Opens the search screen and reloads the list if a city was added.
   Future<void> onAddCityTap() async {
+    debugPrint('add city tapped');
     final added = await _navigationService.navigateTo(Routes.addCityView);
     if (added == true) await init();
   }
@@ -88,17 +92,21 @@ class HomeViewModel extends BaseViewModel {
       allCities = newCities;
     } on IAppException catch (e) {
       _log.e(e);
-      // TODO(lab-1.1) Error logs, touch these first (rare, most valuable): add
-      // telemetry.log(...) (locator<ITelemetry>()) next to the line above, and
-      // at the same kind of catch in WeatherDetailsViewModel.fetchForecast and
-      // ApiService._performRequest. Fields: operation, error.type. Never the
-      // message.
+      // TODO(lab-1.1) Errors in view models, touch these first (rare, most
+      // valuable): add telemetry.log(...) (locator<ITelemetry>()) next to the
+      // line above, and at the same kind of catch in HomeViewModel.init,
+      // AddCityViewModel.search and onResultTap, AirQualityViewModel and
+      // WeatherDetailsViewModel.fetchForecast. Fields: viewmodel, operation,
+      // error.type. Never the message.
     } finally {
       setBusy(false);
     }
   }
 
   void onCardTap(CityLocationModel city) {
+    // TODO(lab-1.7) Lifecycle: navigation. Replace the print here and in
+    // onAddCityTap, WeatherDetailsViewModel.init and onAirQualityTap, and
+    // AirQualityViewModel.init, with a structured log (screen, city_id).
     debugPrint('card tapped city_id=${city.id}');
     _navigationService.navigateTo(
       Routes.weatherDetailsView,

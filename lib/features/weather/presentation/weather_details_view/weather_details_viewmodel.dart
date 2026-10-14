@@ -49,6 +49,7 @@ class WeatherDetailsViewModel extends BaseViewModel {
 
   /// Opens the air quality screen for the current city.
   void onAirQualityTap() {
+    debugPrint('air quality tapped city_id=${city.id}');
     _navigationService.navigateTo(
       Routes.airQualityView,
       arguments: AirQualityViewArguments(city: city),

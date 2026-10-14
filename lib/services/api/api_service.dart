@@ -140,6 +140,10 @@ class ApiService extends IApi {
       throw convertDioException(e);
     } catch (e) {
       _log.e(e);
+      // TODO(lab-1.2) Errors at boundaries: log the error type here, and in the
+      // WeatherRepo catch blocks that wrap unknown errors into
+      // FallbackAppException (the original type is lost once wrapped). Fields:
+      // service, operation, error.type.
       throw AppException(
         data: e,
         message:

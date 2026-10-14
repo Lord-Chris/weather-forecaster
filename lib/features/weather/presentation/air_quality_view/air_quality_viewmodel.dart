@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:stacked/stacked.dart';
 
 import '../../../../core/app/_app.dart';
@@ -15,6 +16,7 @@ class AirQualityViewModel extends BaseViewModel {
 
   void init(CityLocationModel city) {
     this.city = city;
+    debugPrint('air quality opened city_id=${city.id}');
     fetchAirQuality();
   }
 

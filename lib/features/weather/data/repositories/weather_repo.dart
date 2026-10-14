@@ -31,20 +31,20 @@ class WeatherRepo {
   /// Throws [IAppException] if an application-specific exception occurs.
   /// Throws [FallbackAppException] if a fallback exception occurs.
   Future<WeatherModel?> getCurrentWeather(CityLocationModel city) async {
-    // TODO(lab-1.4) Wide event: start a Stopwatch and a
+    // TODO(lab-1.8) Wide event: weather fetch. Start a Stopwatch and a
     // `final event = <String, Object?>{'operation': 'getCurrentWeather',
     // 'city_id': city.id}` here, fill it as the branches below run (connected,
     // source, fallback, cache_hit, error.type), and log it ONCE in a `finally`
-    // with duration_ms. Do the same in get5DayForecast, then delete the fetch
-    // start/done prints from steps 2 and 3: one line now tells the whole story.
+    // with duration_ms. Do the same in get5DayForecast and getAirQuality, then
+    // delete the fetch start/done prints in this repo.
     // TODO(lab-2): count this attempt (`weather.fetch.attempts`) and time the
     // whole call (`weather.fetch.duration`) with ITelemetry.counter / timing.
     debugPrint('weather fetch start city_id=${city.id}');
     try {
-      // TODO(lab-1.2) Decision logs: log each branch that changes what the user
-      // sees (the three prints below and the cache miss in _cachedWeather, plus
-      // the same branches in get5DayForecast) with named fields: source,
-      // offline, fallback, cache_hit.
+      // TODO(lab-1.3) Decisions: data source. Log each branch that changes what
+      // the user sees (the prints below, the cache miss in _cachedWeather, and
+      // the same branches in get5DayForecast and getAirQuality) with named
+      // fields: source, offline, fallback, cache_hit.
       if (await isConnected) {
         try {
           final weather = await _remoteSource.getCurrentWeather(city);
@@ -67,6 +67,7 @@ class WeatherRepo {
     } on IAppException {
       rethrow;
     } catch (e) {
+      // The original error is wrapped and its type is lost from here on.
       throw FallbackAppException(data: e);
     }
   }
@@ -147,6 +148,9 @@ class WeatherRepo {
   /// Saves [city] if it isn't already saved or one of the default cities.
   Future<void> saveCity(CityLocationModel city) async {
     final saved = await _localSource.getSavedCities();
+    // TODO(lab-1.4) Silent drops: the app skips these without telling the user.
+    // Log the duplicate skip here, the stale search response and the too-short
+    // query in AddCityViewModel, and the offline refusal in searchCities.
     if (saved.any((e) => e.id == city.id)) return;
     await _localSource.saveCities([...saved, city]);
   }

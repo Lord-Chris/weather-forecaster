@@ -63,7 +63,8 @@ class WeatherLocalSource {
   }
 
   /// Caches the air quality reading for a specific city.
-  Future<void> cacheAirQuality(String cityId, AirQualityModel airQuality) async {
+  Future<void> cacheAirQuality(
+      String cityId, AirQualityModel airQuality) async {
     await _localStorageService.put(
       StorageKeys.airQualityBox,
       key: cityId,
@@ -91,6 +92,9 @@ class WeatherLocalSource {
 
   /// Returns the cities the user added, or an empty list.
   Future<List<CityLocationModel>> getSavedCities() async {
+    // TODO(lab-1.5) State and persistence: log what was read and written to
+    // storage here and in saveCities (saved_count, cache_hit, parse failures),
+    // and what cacheWeather, cacheForecast and cacheAirQuality wrote (city_id).
     final raw = await _localStorageService.get(
       StorageKeys.savedCitiesBox,
       key: StorageKeys.savedCitiesKey,
