@@ -5,8 +5,11 @@ The app talks only to a small telemetry layer in [lib/core/telemetry/](lib/core/
 ## Run
 
 ```sh
-flutter run --dart-define=ATTENDEE=<your-name> --dart-define=OPEN_WEATHER_API_KEY=...
+cp env.example.json env.json   # then put your OpenWeather key and name in it
+flutter run --dart-define-from-file=env.json
 ```
+
+`env.json` is gitignored. In VS Code, add a launch configuration with `"args": ["--dart-define-from-file=env.json"]` (`.vscode/` is gitignored in this repo).
 
 The attendee tag is added to every log, metric and span so you can find your own data.
 
