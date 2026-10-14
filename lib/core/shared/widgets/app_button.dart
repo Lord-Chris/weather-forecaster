@@ -70,7 +70,7 @@ class AppButton extends StatelessWidget {
       height: height ?? (isCollapsed ? null : 48),
       child: MaterialButton(
         onPressed: isDisabled ? null : () => isBusy ? null : onPressed?.call(),
-        disabledColor: disabledColor ?? buttonColor.withOpacity(0.3),
+        disabledColor: disabledColor ?? buttonColor.withValues(alpha: 0.3),
         color: buttonColor,
         minWidth: 0,
         elevation: elevation,
@@ -83,7 +83,7 @@ class AppButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius ?? 8),
           side: hasBorder
               ? BorderSide(
-                  color: borderColor!.withOpacity(isDisabled ? 0.3 : 1),
+                  color: borderColor!.withValues(alpha: isDisabled ? 0.3 : 1),
                   width: 1,
                 )
               : BorderSide.none,

@@ -164,6 +164,7 @@ class ApiService extends IApi {
         if (e.error is HttpException) return InternetAppException(data: e);
         return FallbackAppException(data: e);
       case DioExceptionType.badResponse:
+      default:
         if ((e.response?.statusCode ?? 0) >= HttpStatus.internalServerError) {
           return ServerAppException(data: e.response?.data);
         }

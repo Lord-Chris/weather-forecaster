@@ -24,7 +24,7 @@ class AppTheme {
       backButtonIconBuilder: (context) =>
           const Icon(Icons.arrow_back_ios, color: AppColors.black),
     ),
-    bottomAppBarTheme: const BottomAppBarTheme(
+    bottomAppBarTheme: const BottomAppBarThemeData(
       height: 90,
       color: AppColors.white,
       surfaceTintColor: AppColors.white,
@@ -38,14 +38,14 @@ class AppTheme {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
     ),
-    cardTheme: const CardTheme(
+    cardTheme: const CardThemeData(
       color: AppColors.white,
       surfaceTintColor: AppColors.transparent,
     ),
     checkboxTheme: CheckboxThemeData(
       side: const BorderSide(color: AppColors.gray300),
       shape: const CircleBorder(),
-      fillColor: MaterialStateProperty.resolveWith(
+      fillColor: WidgetStateProperty.resolveWith(
         (states) {
           return states.isEmpty ? AppColors.transparent : null;
         },
