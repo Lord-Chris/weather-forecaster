@@ -24,7 +24,7 @@ class AppTheme {
       backButtonIconBuilder: (context) =>
           const Icon(Icons.arrow_back_ios, color: AppColors.black),
     ),
-    bottomAppBarTheme: const BottomAppBarTheme(
+    bottomAppBarTheme: const BottomAppBarThemeData(
       height: 90,
       color: AppColors.white,
       surfaceTintColor: AppColors.white,
