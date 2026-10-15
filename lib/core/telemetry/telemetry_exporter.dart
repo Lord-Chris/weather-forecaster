@@ -20,9 +20,19 @@ class ConsoleExporter implements TelemetryExporter {
   static void _defaultSink(String line) => print(line);
 
   @override
-  void exportLog(LogRecord r) =>
-      _sink('[LOG ${r.level.name}] ${r.message} ${r.fields}'
-          '${r.traceId == null ? '' : ' trace=${r.traceId} span=${r.spanId}'}');
+  void exportLog(LogRecord r) {
+    _sink('[LOG ${r.level.name}] ${r.message} ${r.fields}'
+        '${r.traceId == null ? '' : ' trace=${r.traceId} span=${r.spanId}'}');
+    final trace = r.stackTrace;
+    if (trace != null) {
+      // The top frames are enough to find the failing call.
+      final frames = trace.toString().trim().split('\n').take(maxStackFrames);
+      _sink(frames.map((line) => '    $line').join('\n'));
+    }
+  }
+
+  /// How many stack frames are printed under an error log.
+  static const maxStackFrames = 8;
 
   @override
   void exportMetric(MetricRecord r) =>

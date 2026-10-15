@@ -8,6 +8,7 @@ class LogRecord {
   final Map<String, Object?> fields;
   final String? traceId;
   final String? spanId;
+  final StackTrace? stackTrace;
   final DateTime time;
 
   LogRecord({
@@ -16,6 +17,7 @@ class LogRecord {
     this.fields = const {},
     this.traceId,
     this.spanId,
+    this.stackTrace,
     DateTime? time,
   }) : time = time ?? DateTime.now();
 }

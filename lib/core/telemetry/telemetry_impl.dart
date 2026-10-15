@@ -32,6 +32,7 @@ class TelemetryImpl implements ITelemetry {
     TelemetryLevel level,
     String message,
     Map<String, Object?> fields,
+    StackTrace? stackTrace,
   ) {
     final span = current;
     _exporter.exportLog(LogRecord(
@@ -40,6 +41,7 @@ class TelemetryImpl implements ITelemetry {
       fields: {...TelemetrySanitizer.attributes(fields), 'attendee': _attendee},
       traceId: span?.traceId,
       spanId: span?.spanId,
+      stackTrace: stackTrace,
     ));
   }
 
