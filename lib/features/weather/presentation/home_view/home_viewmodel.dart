@@ -59,14 +59,12 @@ class HomeViewModel extends ObservedViewModel {
         _telemetry.metric('cities.saved', savedCount);
       } catch (e, s) {
         _log.e(e);
-        _telemetry.logError(
-            'saved cities load failed',
-            e,
-            {
+        _telemetry.logError('saved cities load failed', e,
+            fields: {
               'viewmodel': 'HomeViewModel',
               'operation': 'init',
             },
-            s);
+            stackTrace: s);
       }
       await getCurrentWeather();
       _telemetry.metric('cities.displayed', cities.length);
@@ -124,14 +122,12 @@ class HomeViewModel extends ObservedViewModel {
     } on IAppException catch (e, s) {
       _log.e(e);
       // TODO(lab-1.1) Errors in view models, touch these first (rare, most
-      _telemetry.logError(
-          'weather load failed',
-          e,
-          {
+      _telemetry.logError('weather load failed', e,
+          fields: {
             'viewmodel': 'HomeViewModel',
             'operation': 'getCurrentWeather',
           },
-          s);
+          stackTrace: s);
     }
   }
 

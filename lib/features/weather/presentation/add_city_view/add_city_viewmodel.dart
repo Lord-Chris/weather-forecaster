@@ -80,14 +80,12 @@ class AddCityViewModel extends ObservedViewModel {
       _log.e(e);
       event['success'] = false;
       event['error.type'] = e.runtimeType.toString();
-      _telemetry.logError(
-          'city search failed',
-          e,
-          {
+      _telemetry.logError('city search failed', e,
+          fields: {
             'viewmodel': 'AddCityViewModel',
             'operation': 'search',
           },
-          s);
+          stackTrace: s);
       results = [];
       errorMessage = e.message;
     } finally {
@@ -114,14 +112,12 @@ class AddCityViewModel extends ObservedViewModel {
       _navigationService.back(result: true);
     } catch (e, s) {
       _log.e(e);
-      _telemetry.logError(
-          'city save failed',
-          e,
-          {
+      _telemetry.logError('city save failed', e,
+          fields: {
             'viewmodel': 'AddCityViewModel',
             'operation': 'onResultTap',
           },
-          s);
+          stackTrace: s);
       errorMessage = 'Could not save this city. Try again.';
       notifyListeners();
     }

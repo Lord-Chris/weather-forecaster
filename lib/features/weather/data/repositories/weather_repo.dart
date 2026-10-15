@@ -76,14 +76,12 @@ class WeatherRepo {
         rethrow;
       } catch (e, s) {
         // The original error is wrapped and its type is lost from here on.
-        _telemetry.logError(
-            'unexpected error wrapped',
-            e,
-            {
+        _telemetry.logError('unexpected error wrapped', e,
+            fields: {
               'service': 'WeatherRepo',
               'operation': 'getCurrentWeather',
             },
-            s);
+            stackTrace: s);
         throw FallbackAppException(data: e);
       }
     });
@@ -145,14 +143,12 @@ class WeatherRepo {
       } on IAppException {
         rethrow;
       } catch (e, s) {
-        _telemetry.logError(
-            'unexpected error wrapped',
-            e,
-            {
+        _telemetry.logError('unexpected error wrapped', e,
+            fields: {
               'service': 'WeatherRepo',
               'operation': 'get5DayForecast',
             },
-            s);
+            stackTrace: s);
         throw FallbackAppException(data: e);
       }
     });
@@ -182,14 +178,12 @@ class WeatherRepo {
       } on IAppException {
         rethrow;
       } catch (e, s) {
-        _telemetry.logError(
-            'unexpected error wrapped',
-            e,
-            {
+        _telemetry.logError('unexpected error wrapped', e,
+            fields: {
               'service': 'WeatherRepo',
               'operation': 'getAirQuality',
             },
-            s);
+            stackTrace: s);
         throw FallbackAppException(data: e);
       }
     });
@@ -211,14 +205,12 @@ class WeatherRepo {
     } on IAppException {
       rethrow;
     } catch (e, s) {
-      _telemetry.logError(
-          'unexpected error wrapped',
-          e,
-          {
+      _telemetry.logError('unexpected error wrapped', e,
+          fields: {
             'service': 'WeatherRepo',
             'operation': 'searchCities',
           },
-          s);
+          stackTrace: s);
       throw FallbackAppException(data: e);
     }
   }

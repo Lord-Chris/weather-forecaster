@@ -49,14 +49,12 @@ class WeatherDetailsViewModel extends ObservedViewModel {
     } on IAppException catch (e, s) {
       _log.e(e);
       // TODO(lab-3.7) Errors on spans: this catch swallows the error INSIDE
-      _telemetry.logError(
-          'forecast load failed',
-          e,
-          {
+      _telemetry.logError('forecast load failed', e,
+          fields: {
             'viewmodel': 'WeatherDetailsViewModel',
             'operation': 'fetchForecast',
           },
-          s);
+          stackTrace: s);
     } finally {
       _telemetry.timing(
         'screen.load.duration',

@@ -132,13 +132,11 @@ class WeatherLocalSource {
         });
         return cities;
       } catch (e, s) {
-        _telemetry.logError(
-            'saved cities parse failed',
-            e,
-            {
+        _telemetry.logError('saved cities parse failed', e,
+            fields: {
               'operation': 'getSavedCities',
             },
-            s);
+            stackTrace: s);
         rethrow;
       }
     }, telemetry: _telemetry);

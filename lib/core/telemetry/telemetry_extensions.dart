@@ -6,10 +6,10 @@ extension TelemetryErrors on ITelemetry {
   /// it came from.
   void logError(
     String message,
-    Object error, [
+    Object error, {
     Map<String, Object?> fields = const {},
     StackTrace? stackTrace,
-  ]) {
+  }) {
     log.e(
         message,
         {

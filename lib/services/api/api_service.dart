@@ -144,14 +144,12 @@ class ApiService extends IApi {
     } catch (e, s) {
       _log.e(e);
       // TODO(lab-1.2) Errors at boundaries: log the error type here, and in the
-      locator<ITelemetry>().logError(
-          'api request failed',
-          e,
-          {
+      locator<ITelemetry>().logError('api request failed', e,
+          fields: {
             'service': 'ApiService',
             'operation': '_performRequest',
           },
-          s);
+          stackTrace: s);
       throw AppException(
         data: e,
         message:

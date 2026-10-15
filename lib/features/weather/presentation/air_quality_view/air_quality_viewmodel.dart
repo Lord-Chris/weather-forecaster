@@ -32,14 +32,12 @@ class AirQualityViewModel extends ObservedViewModel {
       });
     } on IAppException catch (e, s) {
       _log.e(e);
-      _telemetry.logError(
-          'air quality load failed',
-          e,
-          {
+      _telemetry.logError('air quality load failed', e,
+          fields: {
             'viewmodel': 'AirQualityViewModel',
             'operation': 'fetchAirQuality',
           },
-          s);
+          stackTrace: s);
     } finally {
       _telemetry.timing(
         'screen.load.duration',
