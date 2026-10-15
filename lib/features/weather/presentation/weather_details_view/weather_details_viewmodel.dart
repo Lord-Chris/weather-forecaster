@@ -46,13 +46,17 @@ class WeatherDetailsViewModel extends ObservedViewModel {
         });
         _forecast = await _weatherRepo.get5DayForecast(city);
       });
-    } on IAppException catch (e) {
+    } on IAppException catch (e, s) {
       _log.e(e);
       // TODO(lab-3.7) Errors on spans: this catch swallows the error INSIDE
-      _telemetry.logError('forecast load failed', e, {
-        'viewmodel': 'WeatherDetailsViewModel',
-        'operation': 'fetchForecast',
-      });
+      _telemetry.logError(
+          'forecast load failed',
+          e,
+          {
+            'viewmodel': 'WeatherDetailsViewModel',
+            'operation': 'fetchForecast',
+          },
+          s);
     } finally {
       _telemetry.timing(
         'screen.load.duration',

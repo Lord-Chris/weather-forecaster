@@ -75,6 +75,7 @@ void main() {
       expect(event.fields['success'], true);
       expect(event.fields['duration_ms'], isA<int>());
       expect(event.fields.containsKey('error.type'), isFalse);
+      expect(event.stackTrace, isNull);
     });
 
     test('attempts, duration and the in-flight gauge are recorded', () async {
@@ -144,6 +145,7 @@ void main() {
       expect(event.level, TelemetryLevel.error);
       expect(event.fields['success'], false);
       expect(event.fields['error.type'], 'InternetAppException');
+      expect(event.stackTrace, isNotNull);
       final errors = metric('weather.fetch.errors');
       expect(errors.tags['error.type'], 'InternetAppException');
       expect(errors.tags['operation'], 'getCurrentWeather');
@@ -163,6 +165,7 @@ void main() {
           .firstWhere((l) => l.message == 'unexpected error wrapped');
       expect(wrapped.fields['error.type'], 'StateError');
       expect(wrapped.fields['service'], 'WeatherRepo');
+      expect(wrapped.stackTrace, isNotNull);
       expect(events().single.fields['error.type'], 'FallbackAppException');
     });
 

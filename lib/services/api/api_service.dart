@@ -141,13 +141,17 @@ class ApiService extends IApi {
       return data;
     } on DioException catch (e) {
       throw convertDioException(e);
-    } catch (e) {
+    } catch (e, s) {
       _log.e(e);
       // TODO(lab-1.2) Errors at boundaries: log the error type here, and in the
-      locator<ITelemetry>().logError('api request failed', e, {
-        'service': 'ApiService',
-        'operation': '_performRequest',
-      });
+      locator<ITelemetry>().logError(
+          'api request failed',
+          e,
+          {
+            'service': 'ApiService',
+            'operation': '_performRequest',
+          },
+          s);
       throw AppException(
         data: e,
         message:

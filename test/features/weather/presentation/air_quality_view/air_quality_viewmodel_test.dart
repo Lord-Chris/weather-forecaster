@@ -65,6 +65,7 @@ void main() {
           .firstWhere((l) => l.message == 'air quality load failed');
       expect(log.fields['error.type'], 'InternetAppException');
       expect(log.fields['operation'], 'fetchAirQuality');
+      expect(log.stackTrace, isNotNull);
       final span = exporter.spans.single;
       expect(span.name, 'AirQualityViewModel');
       expect(span.errorType, 'InternetAppException');

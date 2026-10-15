@@ -57,12 +57,16 @@ class HomeViewModel extends ObservedViewModel {
         allCities = [...AppConstants.cities, ...saved];
         // TODO(lab-2.7) Gauges, current level: `cities.saved` (saved cities loaded)
         _telemetry.metric('cities.saved', savedCount);
-      } catch (e) {
+      } catch (e, s) {
         _log.e(e);
-        _telemetry.logError('saved cities load failed', e, {
-          'viewmodel': 'HomeViewModel',
-          'operation': 'init',
-        });
+        _telemetry.logError(
+            'saved cities load failed',
+            e,
+            {
+              'viewmodel': 'HomeViewModel',
+              'operation': 'init',
+            },
+            s);
       }
       await getCurrentWeather();
       _telemetry.metric('cities.displayed', cities.length);
@@ -117,13 +121,17 @@ class HomeViewModel extends ObservedViewModel {
         // TODO(lab-3.6) Span attributes: inside observe(), add attributes to the
         _telemetry.current?.setAttribute('cities', allCities.length);
       });
-    } on IAppException catch (e) {
+    } on IAppException catch (e, s) {
       _log.e(e);
       // TODO(lab-1.1) Errors in view models, touch these first (rare, most
-      _telemetry.logError('weather load failed', e, {
-        'viewmodel': 'HomeViewModel',
-        'operation': 'getCurrentWeather',
-      });
+      _telemetry.logError(
+          'weather load failed',
+          e,
+          {
+            'viewmodel': 'HomeViewModel',
+            'operation': 'getCurrentWeather',
+          },
+          s);
     }
   }
 

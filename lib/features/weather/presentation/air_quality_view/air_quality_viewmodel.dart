@@ -30,12 +30,16 @@ class AirQualityViewModel extends ObservedViewModel {
       await observe(() async {
         airQuality = await _weatherRepo.getAirQuality(city);
       });
-    } on IAppException catch (e) {
+    } on IAppException catch (e, s) {
       _log.e(e);
-      _telemetry.logError('air quality load failed', e, {
-        'viewmodel': 'AirQualityViewModel',
-        'operation': 'fetchAirQuality',
-      });
+      _telemetry.logError(
+          'air quality load failed',
+          e,
+          {
+            'viewmodel': 'AirQualityViewModel',
+            'operation': 'fetchAirQuality',
+          },
+          s);
     } finally {
       _telemetry.timing(
         'screen.load.duration',

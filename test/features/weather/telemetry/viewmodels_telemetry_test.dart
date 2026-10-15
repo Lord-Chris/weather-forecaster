@@ -122,6 +122,7 @@ void main() {
           AppConstants.cities.length);
       expect(logs('weather load failed').single.fields['error.type'],
           'InternetAppException');
+      expect(logs('weather load failed').single.stackTrace, isNotNull);
       expect(
         telemetryExporter.spans
             .firstWhere((s) => s.name == 'HomeViewModel')
@@ -174,6 +175,7 @@ void main() {
       expect(span.errorType, 'InternetAppException');
       expect(logs('forecast load failed').single.fields['error.type'],
           'InternetAppException');
+      expect(logs('forecast load failed').single.stackTrace, isNotNull);
     });
 
     test('air quality tap counts a ui.action', () {
@@ -266,6 +268,7 @@ void main() {
 
       expect(
           logs('city save failed').single.fields['error.type'], 'StateError');
+      expect(logs('city save failed').single.stackTrace, isNotNull);
       expect(
           logs('add city result tapped').single.fields['city_id'], isNotNull);
     });
@@ -313,6 +316,7 @@ void main() {
 
       expect(logs('saved cities parse failed').single.fields['error.type'],
           'FormatException');
+      expect(logs('saved cities parse failed').single.stackTrace, isNotNull);
     });
 
     test('writing saved cities is traced and counted', () async {

@@ -74,12 +74,16 @@ class WeatherRepo {
         }
       } on IAppException {
         rethrow;
-      } catch (e) {
+      } catch (e, s) {
         // The original error is wrapped and its type is lost from here on.
-        _telemetry.logError('unexpected error wrapped', e, {
-          'service': 'WeatherRepo',
-          'operation': 'getCurrentWeather',
-        });
+        _telemetry.logError(
+            'unexpected error wrapped',
+            e,
+            {
+              'service': 'WeatherRepo',
+              'operation': 'getCurrentWeather',
+            },
+            s);
         throw FallbackAppException(data: e);
       }
     });
@@ -140,11 +144,15 @@ class WeatherRepo {
         }
       } on IAppException {
         rethrow;
-      } catch (e) {
-        _telemetry.logError('unexpected error wrapped', e, {
-          'service': 'WeatherRepo',
-          'operation': 'get5DayForecast',
-        });
+      } catch (e, s) {
+        _telemetry.logError(
+            'unexpected error wrapped',
+            e,
+            {
+              'service': 'WeatherRepo',
+              'operation': 'get5DayForecast',
+            },
+            s);
         throw FallbackAppException(data: e);
       }
     });
@@ -173,11 +181,15 @@ class WeatherRepo {
         return cached;
       } on IAppException {
         rethrow;
-      } catch (e) {
-        _telemetry.logError('unexpected error wrapped', e, {
-          'service': 'WeatherRepo',
-          'operation': 'getAirQuality',
-        });
+      } catch (e, s) {
+        _telemetry.logError(
+            'unexpected error wrapped',
+            e,
+            {
+              'service': 'WeatherRepo',
+              'operation': 'getAirQuality',
+            },
+            s);
         throw FallbackAppException(data: e);
       }
     });
@@ -198,11 +210,15 @@ class WeatherRepo {
       return await _remoteSource.searchCities(query);
     } on IAppException {
       rethrow;
-    } catch (e) {
-      _telemetry.logError('unexpected error wrapped', e, {
-        'service': 'WeatherRepo',
-        'operation': 'searchCities',
-      });
+    } catch (e, s) {
+      _telemetry.logError(
+          'unexpected error wrapped',
+          e,
+          {
+            'service': 'WeatherRepo',
+            'operation': 'searchCities',
+          },
+          s);
       throw FallbackAppException(data: e);
     }
   }
@@ -246,10 +262,12 @@ class WeatherRepo {
       'city_id': city.id,
       'success': true,
     };
+    StackTrace? failure;
     _telemetry.metric('weather.fetch.in_flight', ++_inFlight);
     try {
       return await body(event);
-    } catch (e) {
+    } catch (e, s) {
+      failure = s;
       event['success'] = false;
       event['error.type'] = e.runtimeType.toString();
       _telemetry.counter('weather.fetch.errors', {
@@ -270,6 +288,7 @@ class WeatherRepo {
         event['success'] == true ? TelemetryLevel.info : TelemetryLevel.error,
         'weather.fetch',
         event,
+        failure,
       );
     }
   }

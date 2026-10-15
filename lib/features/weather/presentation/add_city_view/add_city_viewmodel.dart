@@ -76,14 +76,18 @@ class AddCityViewModel extends ObservedViewModel {
         return;
       }
       results = found;
-    } on IAppException catch (e) {
+    } on IAppException catch (e, s) {
       _log.e(e);
       event['success'] = false;
       event['error.type'] = e.runtimeType.toString();
-      _telemetry.logError('city search failed', e, {
-        'viewmodel': 'AddCityViewModel',
-        'operation': 'search',
-      });
+      _telemetry.logError(
+          'city search failed',
+          e,
+          {
+            'viewmodel': 'AddCityViewModel',
+            'operation': 'search',
+          },
+          s);
       results = [];
       errorMessage = e.message;
     } finally {
@@ -108,12 +112,16 @@ class AddCityViewModel extends ObservedViewModel {
     try {
       await _weatherRepo.saveCity(city);
       _navigationService.back(result: true);
-    } catch (e) {
+    } catch (e, s) {
       _log.e(e);
-      _telemetry.logError('city save failed', e, {
-        'viewmodel': 'AddCityViewModel',
-        'operation': 'onResultTap',
-      });
+      _telemetry.logError(
+          'city save failed',
+          e,
+          {
+            'viewmodel': 'AddCityViewModel',
+            'operation': 'onResultTap',
+          },
+          s);
       errorMessage = 'Could not save this city. Try again.';
       notifyListeners();
     }
