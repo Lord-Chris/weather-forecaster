@@ -1,19 +1,16 @@
-import 'package:flutter/foundation.dart';
-import 'package:stacked/stacked.dart';
-
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/models/_models.dart';
+import '../../../../core/telemetry/_telemetry.dart';
 import '../../data/repositories/weather_repo.dart';
 import '../../data/dtos/city_location_model.dart';
 import '../../data/dtos/forecast_model.dart';
 
 // TODO(lab-3.3) Details waterfall: extend ObservedViewModel and wrap the work in
-// fetchForecast() with `observe(() async { ... })`. Run with
-// SILENT_DUPLICATE_REQUEST=true and look for two sibling request spans.
-class WeatherDetailsViewModel extends BaseViewModel {
+class WeatherDetailsViewModel extends ObservedViewModel {
   final _log = getLogger('WeatherDetailsViewModel');
   final _weatherRepo = locator<WeatherRepo>();
+  final _telemetry = locator<ITelemetry>();
 
   final _navigationService = locator<NavigationService>();
 
@@ -22,10 +19,8 @@ class WeatherDetailsViewModel extends BaseViewModel {
 
   void init(CityLocationModel city) {
     this.city = city;
-    // TODO(lab-3.10) Correlate logs and traces: inside the observed work, log a
-    // line with ITelemetry.log. TelemetryImpl stamps it with the current trace
-    // and span id, so the log lines up with its span. Check the ids match.
-    debugPrint('details opened city_id=${city.id}');
+    _telemetry
+        .log(TelemetryLevel.debug, 'details opened', {'city_id': city.id});
     fetchForecast();
     // Silent failure (traces): one tap sends the same request twice. Nothing
     // crashes; the only evidence is two sibling request spans.
@@ -42,25 +37,38 @@ class WeatherDetailsViewModel extends BaseViewModel {
   ///   - [IAppException]: If an error occurs while fetching the forecast.
   Future<void> fetchForecast() async {
     // TODO(lab-2.9) Timing, user-perceived latency: `screen.load.duration` with
-    // a `screen` tag (details here, home in HomeViewModel.init, air_quality in
-    // AirQualityViewModel). Measure from the call to the busy flag clearing.
+    final stopwatch = Stopwatch()..start();
     try {
-      setBusy(true);
-      _forecast = await _weatherRepo.get5DayForecast(city);
+      // The try/catch stays outside observe() so a failure reaches the span.
+      await observe(() async {
+        // TODO(lab-3.10) Correlate logs and traces: inside the observed work, log a
+        _telemetry.log(TelemetryLevel.info, 'forecast fetch', {
+          'city_id': city.id,
+        });
+        _forecast = await _weatherRepo.get5DayForecast(city);
+      });
     } on IAppException catch (e) {
       _log.e(e);
       // TODO(lab-3.7) Errors on spans: this catch swallows the error INSIDE
-      // observe(), so the span ends as a success. Move the try/catch outside
-      // observe() (or rethrow) so the span records error.type, then verify with
-      // FAULT_FAIL_RATE=100.
+      _telemetry.logError('forecast load failed', e, {
+        'viewmodel': 'WeatherDetailsViewModel',
+        'operation': 'fetchForecast',
+      });
     } finally {
-      setBusy(false);
+      _telemetry.timing(
+        'screen.load.duration',
+        stopwatch.elapsed,
+        {'screen': 'details'},
+      );
     }
   }
 
   /// Opens the air quality screen for the current city.
   void onAirQualityTap() {
-    debugPrint('air quality tapped city_id=${city.id}');
+    _telemetry.counter('ui.action', {'action': 'air_quality'});
+    _telemetry.log(TelemetryLevel.debug, 'air quality tapped', {
+      'city_id': city.id,
+    });
     _navigationService.navigateTo(
       Routes.airQualityView,
       arguments: AirQualityViewArguments(city: city),

@@ -26,14 +26,12 @@ class TelemetryInterceptor extends Interceptor {
   }
 
   // TODO(lab-2.10) Derive instead of hand-writing: record `http.client.requests`
-  // (counter, tags method and status_class such as 2xx, 4xx) and
-  // `http.client.duration` (timing) here in onResponse and onError. One place
-  // replaces a metric call at every call site.
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     final span = response.requestOptions.extra[_spanKey] as Span?;
     span?.setAttribute('http.status_code', response.statusCode);
     span?.end();
+    _recordMetrics(response.requestOptions, response.statusCode, span);
     handler.next(response);
   }
 
@@ -44,6 +42,20 @@ class TelemetryInterceptor extends Interceptor {
     span?.setAttribute('error.type', err.type.name);
     span?.setError(err);
     span?.end();
+    _recordMetrics(err.requestOptions, err.response?.statusCode, span);
     handler.next(err);
+  }
+
+  /// Request count and duration, tagged by method and status class (2xx, 4xx,
+  /// or `error` when no response came back). One place, no call-site metrics.
+  void _recordMetrics(RequestOptions options, int? statusCode, Span? span) {
+    final tags = {
+      'method': options.method,
+      'status_class': statusCode == null ? 'error' : '${statusCode ~/ 100}xx',
+    };
+    _telemetry.counter('http.client.requests', tags);
+    if (span != null) {
+      _telemetry.timing('http.client.duration', span.duration, tags);
+    }
   }
 }

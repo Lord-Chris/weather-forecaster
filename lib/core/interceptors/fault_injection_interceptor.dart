@@ -37,6 +37,9 @@ class FaultInjectionInterceptor extends Interceptor {
           requestOptions: options,
           reason: 'injected fault',
         ),
+        // Run the error interceptors too, so a telemetry span opened earlier
+        // in the chain still ends.
+        true,
       );
     }
     handler.next(options);

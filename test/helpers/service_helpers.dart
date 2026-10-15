@@ -1,5 +1,6 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:weather_forecast/core/app/_app.dart';
+import 'package:weather_forecast/core/telemetry/_telemetry.dart';
 import 'package:weather_forecast/services/_services.dart';
 
 import 'helpers.dart';
@@ -51,7 +52,23 @@ ILocalStorage getAndRegisterLocalStorageService() {
   return service;
 }
 
+/// Registers a real [TelemetryImpl] backed by an [InMemoryExporter] and returns
+/// the exporter so tests can assert on what was recorded.
+/// The exporter behind the telemetry most recently registered by
+/// [getAndRegisterTelemetry]; read it in tests after [registerServices].
+InMemoryExporter telemetryExporter = InMemoryExporter();
+
+InMemoryExporter getAndRegisterTelemetry() {
+  removeRegistrationIfExists<ITelemetry>();
+  final exporter = telemetryExporter = InMemoryExporter();
+  locator.registerSingleton<ITelemetry>(
+    TelemetryImpl(exporter: exporter, attendee: 'tester'),
+  );
+  return exporter;
+}
+
 void registerServices() {
+  getAndRegisterTelemetry();
   getAndRegisterNavigationService();
   getAndRegisterSnackbarService();
   getAndRegisterApiService();
@@ -65,4 +82,5 @@ void unregisterServices() {
   locator.unregister<IApi>();
   locator.unregister<IConnectivityService>();
   locator.unregister<ILocalStorage>();
+  removeRegistrationIfExists<ITelemetry>();
 }

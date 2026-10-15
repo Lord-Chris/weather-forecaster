@@ -100,4 +100,4 @@ Outside Lab 1, `ITelemetry` is injected everywhere (registered in the locator), 
 
 ## Branches
 
-`workshop/main` is the starter. Solution branches fork from it. `main` is not used.
+`workshop/main` is the starter. `workshop/solution` forks from it with every lab step (1.1 to 3.10) implemented. The first line of each `TODO(lab-N.M)` comment is kept there so you can find the step; the rest of the TODO text is removed. `main` is not used.

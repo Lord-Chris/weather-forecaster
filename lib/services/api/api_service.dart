@@ -7,8 +7,10 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/interceptors/fault_injection_interceptor.dart';
 import '../../../core/interceptors/logger_interceptor.dart';
+import '../../../core/interceptors/telemetry_interceptor.dart';
 import '../../core/app/_app.dart';
 import '../../core/shared/models/app_exception.dart';
+import '../../core/telemetry/_telemetry.dart';
 import 'i_api.dart';
 
 class ApiService extends IApi {
@@ -27,7 +29,7 @@ class ApiService extends IApi {
       };
     dio.interceptors.addAll([
       // TODO(lab-3.1) One span per request: add TelemetryInterceptor(locator<ITelemetry>())
-      // here. Do this first; every later step hangs its spans off these.
+      TelemetryInterceptor(locator<ITelemetry>()),
       ApiLoggerInterceptor(),
       if (kDebugMode && FaultInjectionInterceptor.isEnabled)
         FaultInjectionInterceptor(dio),
@@ -142,9 +144,10 @@ class ApiService extends IApi {
     } catch (e) {
       _log.e(e);
       // TODO(lab-1.2) Errors at boundaries: log the error type here, and in the
-      // WeatherRepo catch blocks that wrap unknown errors into
-      // FallbackAppException (the original type is lost once wrapped). Fields:
-      // service, operation, error.type.
+      locator<ITelemetry>().logError('api request failed', e, {
+        'service': 'ApiService',
+        'operation': '_performRequest',
+      });
       throw AppException(
         data: e,
         message:

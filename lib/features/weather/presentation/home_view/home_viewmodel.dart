@@ -1,20 +1,16 @@
-import 'package:flutter/foundation.dart';
-import 'package:stacked/stacked.dart';
-
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/models/_models.dart';
+import '../../../../core/telemetry/_telemetry.dart';
 import '../../data/dtos/city_location_model.dart';
 import '../../data/repositories/weather_repo.dart';
 
 // TODO(lab-3.2) Home load waterfall: extend ObservedViewModel instead of
-// BaseViewModel and wrap the work in getCurrentWeather() with
-// `observe(() async { ... })`. You should see one view model span with one
-// request span per city as its parallel children.
-class HomeViewModel extends BaseViewModel {
+class HomeViewModel extends ObservedViewModel {
   final _log = getLogger('HomeViewModel');
   final _weatherRepo = locator<WeatherRepo>();
   final _navigationService = locator<NavigationService>();
+  final _telemetry = locator<ITelemetry>();
 
   List<CityLocationModel> allCities = AppConstants.cities;
   final searchedCities = <CityLocationModel>[];
@@ -35,9 +31,9 @@ class HomeViewModel extends BaseViewModel {
   void onSearchQueryChanged(String value) {
     searchQuery = value;
     // TODO(lab-1.6) Lifecycle: user input. Replace the print here, in
-    // AddCityViewModel.onQueryChanged and onResultTap with a structured log and
-    // named fields (query_length, city_id). Noisy, so touch these late.
-    debugPrint('search changed length=${value.length}');
+    _telemetry.log(TelemetryLevel.debug, 'search changed', {
+      'query_length': value.length,
+    });
     searchedCities.clear();
     if (value.isNotEmpty) {
       searchedCities.addAll(
@@ -51,26 +47,47 @@ class HomeViewModel extends BaseViewModel {
 
   /// Loads the cities the user added, then fetches the weather for all cities.
   Future<void> init() async {
-    // TODO(lab-2.7) Gauges, current level: `cities.saved` (saved cities loaded)
-    // and `cities.displayed` after the list is built; in the repo, a
-    // `weather.fetch.in_flight` gauge that goes up when a fetch starts and down
-    // when it ends. Gauges can go down, counters cannot.
     // TODO(lab-1.10) Wide event: home load. One `home.load` event for the whole
-    // flow, logged once in a `finally`: default_cities, saved_cities,
-    // cities_loaded, cities_failed, duration_ms. getCurrentWeather() runs one
-    // fetch per city, so this event summarises many of the step 1.8 events.
+    final stopwatch = Stopwatch()..start();
+    var savedCount = 0;
     try {
-      final saved = await _weatherRepo.getSavedCities();
-      allCities = [...AppConstants.cities, ...saved];
-    } catch (e) {
-      _log.e(e);
+      try {
+        final saved = await _weatherRepo.getSavedCities();
+        savedCount = saved.length;
+        allCities = [...AppConstants.cities, ...saved];
+        // TODO(lab-2.7) Gauges, current level: `cities.saved` (saved cities loaded)
+        _telemetry.metric('cities.saved', savedCount);
+      } catch (e) {
+        _log.e(e);
+        _telemetry.logError('saved cities load failed', e, {
+          'viewmodel': 'HomeViewModel',
+          'operation': 'init',
+        });
+      }
+      await getCurrentWeather();
+      _telemetry.metric('cities.displayed', cities.length);
+    } finally {
+      stopwatch.stop();
+      final loaded = allCities.where((city) => city.weather != null).length;
+      _telemetry.log(TelemetryLevel.info, 'home.load', {
+        'default_cities': AppConstants.cities.length,
+        'saved_cities': savedCount,
+        'cities_loaded': loaded,
+        'cities_failed': allCities.length - loaded,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+      });
+      _telemetry.timing(
+        'screen.load.duration',
+        stopwatch.elapsed,
+        {'screen': 'home'},
+      );
     }
-    await getCurrentWeather();
   }
 
   /// Opens the search screen and reloads the list if a city was added.
   Future<void> onAddCityTap() async {
-    debugPrint('add city tapped');
+    _telemetry.counter('ui.action', {'action': 'add_city'});
+    _telemetry.log(TelemetryLevel.debug, 'add city tapped');
     final added = await _navigationService.navigateTo(Routes.addCityView);
     if (added == true) await init();
   }
@@ -86,41 +103,35 @@ class HomeViewModel extends BaseViewModel {
   /// Regardless of whether an exception is thrown or not, the [busy] state is set to false.
   Future<void> getCurrentWeather() async {
     try {
-      setBusy(true);
-      final res = await Future.wait(
-        allCities.map((city) => _weatherRepo.getCurrentWeather(city)),
-      );
-      var newCities = <CityLocationModel>[];
+      // The try/catch stays outside observe() so a failure reaches the span.
+      await observe(() async {
+        final res = await Future.wait(
+          allCities.map((city) => _weatherRepo.getCurrentWeather(city)),
+        );
+        var newCities = <CityLocationModel>[];
 
-      for (var i = 0; i < allCities.length; i++) {
-        newCities.add(allCities[i].copyWith(weather: res[i]));
-      }
-      allCities = newCities;
-      // TODO(lab-3.6) Span attributes: inside observe(), add attributes to the
-      // current span (`locator<ITelemetry>().current?.setAttribute('cities',
-      // allCities.length)`). Counts and flags only: names, tokens and keys are
-      // dropped by the privacy rules.
+        for (var i = 0; i < allCities.length; i++) {
+          newCities.add(allCities[i].copyWith(weather: res[i]));
+        }
+        allCities = newCities;
+        // TODO(lab-3.6) Span attributes: inside observe(), add attributes to the
+        _telemetry.current?.setAttribute('cities', allCities.length);
+      });
     } on IAppException catch (e) {
       _log.e(e);
       // TODO(lab-1.1) Errors in view models, touch these first (rare, most
-      // valuable): add telemetry.log(...) (locator<ITelemetry>()) next to the
-      // line above, and at the same kind of catch in HomeViewModel.init,
-      // AddCityViewModel.search and onResultTap, AirQualityViewModel and
-      // WeatherDetailsViewModel.fetchForecast. Fields: viewmodel, operation,
-      // error.type. Never the message.
-    } finally {
-      setBusy(false);
+      _telemetry.logError('weather load failed', e, {
+        'viewmodel': 'HomeViewModel',
+        'operation': 'getCurrentWeather',
+      });
     }
   }
 
   void onCardTap(CityLocationModel city) {
     // TODO(lab-2.6) Counter, user actions: `ui.action` tagged action=card_tap
-    // here, add_city in onAddCityTap, air_quality in
-    // WeatherDetailsViewModel.onAirQualityTap. A fixed set of values, never ids.
+    _telemetry.counter('ui.action', {'action': 'card_tap'});
     // TODO(lab-1.7) Lifecycle: navigation. Replace the print here and in
-    // onAddCityTap, WeatherDetailsViewModel.init and onAirQualityTap, and
-    // AirQualityViewModel.init, with a structured log (screen, city_id).
-    debugPrint('card tapped city_id=${city.id}');
+    _telemetry.log(TelemetryLevel.debug, 'card tapped', {'city_id': city.id});
     _navigationService.navigateTo(
       Routes.weatherDetailsView,
       arguments: WeatherDetailsViewArguments(city: city),
