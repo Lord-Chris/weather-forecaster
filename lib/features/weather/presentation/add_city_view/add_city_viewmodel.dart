@@ -29,12 +29,12 @@ class AddCityViewModel extends ObservedViewModel {
   /// Debounces typing, then searches for [value].
   void onQueryChanged(String value) {
     query = value;
-    _telemetry.log(TelemetryLevel.debug, 'add city query changed', {
+    _telemetry.log.d('add city query changed', {
       'query_length': value.trim().length,
     });
     _debounce?.cancel();
     if (value.trim().length < 2) {
-      _telemetry.log(TelemetryLevel.debug, 'search skipped', {
+      _telemetry.log.d('search skipped', {
         'reason': 'query_too_short',
         'query_length': value.trim().length,
       });
@@ -69,7 +69,7 @@ class AddCityViewModel extends ObservedViewModel {
       if (searched != query.trim()) {
         event['stale_discarded'] = true;
         _telemetry.counter('city.search.stale_discarded');
-        _telemetry.log(TelemetryLevel.info, 'search response discarded', {
+        _telemetry.log.i('search response discarded', {
           'reason': 'stale',
           'query_length': searched.length,
         });
@@ -102,7 +102,7 @@ class AddCityViewModel extends ObservedViewModel {
   /// Saves [location] to the home list and returns to the previous screen.
   Future<void> onResultTap(GeoLocationModel location) async {
     final city = location.toCityLocationModel();
-    _telemetry.log(TelemetryLevel.debug, 'add city result tapped', {
+    _telemetry.log.d('add city result tapped', {
       'city_id': city.id,
     });
     try {

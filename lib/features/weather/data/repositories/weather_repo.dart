@@ -61,8 +61,7 @@ class WeatherRepo {
             event['source'] = 'cache';
             event['fallback'] = true;
             event['fallback.error_type'] = e.runtimeType.toString();
-            _telemetry
-                .log(TelemetryLevel.warning, 'served cache after failure', {
+            _telemetry.log.w('served cache after failure', {
               'operation': 'getCurrentWeather',
               'city_id': city.id,
               'error.type': e.runtimeType.toString(),
@@ -94,7 +93,7 @@ class WeatherRepo {
     event['cache_hit'] = cached != null;
     _recordCacheLookup('weather', hit: cached != null);
     if (cached == null) {
-      _telemetry.log(TelemetryLevel.info, 'weather cache miss', {
+      _telemetry.log.i('weather cache miss', {
         'city_id': city.id,
       });
     }
@@ -190,7 +189,7 @@ class WeatherRepo {
   Future<List<GeoLocationModel>> searchCities(String query) async {
     try {
       if (!await isConnected) {
-        _telemetry.log(TelemetryLevel.warning, 'search refused', {
+        _telemetry.log.w('search refused', {
           'reason': 'offline',
           'query_length': query.length,
         });
@@ -217,7 +216,7 @@ class WeatherRepo {
     final saved = await _localSource.getSavedCities();
     // TODO(lab-1.4) Silent drops: the app skips these without telling the user.
     if (saved.any((e) => e.id == city.id)) {
-      _telemetry.log(TelemetryLevel.info, 'city save skipped', {
+      _telemetry.log.i('city save skipped', {
         'reason': 'duplicate',
         'city_id': city.id,
       });

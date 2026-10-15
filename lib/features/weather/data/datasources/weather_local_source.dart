@@ -15,7 +15,7 @@ class WeatherLocalSource {
   final _telemetry = locator<ITelemetry>();
 
   void _cacheWritten(String cache, String cityId) =>
-      _telemetry.log(TelemetryLevel.debug, 'cache written', {
+      _telemetry.log.d('cache written', {
         'cache': cache,
         'city_id': cityId,
       });
@@ -100,7 +100,7 @@ class WeatherLocalSource {
         key: StorageKeys.savedCitiesKey,
         value: json.encode(cities.map((e) => e.toMap()).toList()),
       );
-      _telemetry.log(TelemetryLevel.info, 'saved cities written', {
+      _telemetry.log.i('saved cities written', {
         'saved_count': cities.length,
       });
     }, telemetry: _telemetry);
@@ -116,7 +116,7 @@ class WeatherLocalSource {
         key: StorageKeys.savedCitiesKey,
       );
       if (raw == null) {
-        _telemetry.log(TelemetryLevel.info, 'saved cities read', {
+        _telemetry.log.i('saved cities read', {
           'saved_count': 0,
           'cache_hit': false,
         });
@@ -126,7 +126,7 @@ class WeatherLocalSource {
         final cities = (json.decode(raw as String) as List)
             .map((e) => CityLocationModel.fromMap(e as Map<String, dynamic>))
             .toList();
-        _telemetry.log(TelemetryLevel.info, 'saved cities read', {
+        _telemetry.log.i('saved cities read', {
           'saved_count': cities.length,
           'cache_hit': true,
         });

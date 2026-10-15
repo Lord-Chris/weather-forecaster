@@ -19,8 +19,7 @@ class WeatherDetailsViewModel extends ObservedViewModel {
 
   void init(CityLocationModel city) {
     this.city = city;
-    _telemetry
-        .log(TelemetryLevel.debug, 'details opened', {'city_id': city.id});
+    _telemetry.log.d('details opened', {'city_id': city.id});
     fetchForecast();
     // Silent failure (traces): one tap sends the same request twice. Nothing
     // crashes; the only evidence is two sibling request spans.
@@ -42,7 +41,7 @@ class WeatherDetailsViewModel extends ObservedViewModel {
       // The try/catch stays outside observe() so a failure reaches the span.
       await observe(() async {
         // TODO(lab-3.10) Correlate logs and traces: inside the observed work, log a
-        _telemetry.log(TelemetryLevel.info, 'forecast fetch', {
+        _telemetry.log.i('forecast fetch', {
           'city_id': city.id,
         });
         _forecast = await _weatherRepo.get5DayForecast(city);
@@ -66,7 +65,7 @@ class WeatherDetailsViewModel extends ObservedViewModel {
   /// Opens the air quality screen for the current city.
   void onAirQualityTap() {
     _telemetry.counter('ui.action', {'action': 'air_quality'});
-    _telemetry.log(TelemetryLevel.debug, 'air quality tapped', {
+    _telemetry.log.d('air quality tapped', {
       'city_id': city.id,
     });
     _navigationService.navigateTo(

@@ -15,7 +15,7 @@ class AirQualityViewModel extends ObservedViewModel {
 
   void init(CityLocationModel city) {
     this.city = city;
-    _telemetry.log(TelemetryLevel.debug, 'air quality opened', {
+    _telemetry.log.d('air quality opened', {
       'city_id': city.id,
     });
     fetchAirQuality();

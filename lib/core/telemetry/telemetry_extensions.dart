@@ -1,5 +1,4 @@
 import 'i_telemetry.dart';
-import 'telemetry_record.dart';
 
 extension TelemetryErrors on ITelemetry {
   /// Logs an error by type only, never its message, so no private detail can
@@ -9,7 +8,7 @@ extension TelemetryErrors on ITelemetry {
     Object error, [
     Map<String, Object?> fields = const {},
   ]) {
-    log(TelemetryLevel.error, message, {
+    log.e(message, {
       ...fields,
       'error.type': error.runtimeType.toString(),
     });

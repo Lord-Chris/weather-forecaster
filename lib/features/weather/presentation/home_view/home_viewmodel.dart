@@ -31,7 +31,7 @@ class HomeViewModel extends ObservedViewModel {
   void onSearchQueryChanged(String value) {
     searchQuery = value;
     // TODO(lab-1.6) Lifecycle: user input. Replace the print here, in
-    _telemetry.log(TelemetryLevel.debug, 'search changed', {
+    _telemetry.log.d('search changed', {
       'query_length': value.length,
     });
     searchedCities.clear();
@@ -69,7 +69,7 @@ class HomeViewModel extends ObservedViewModel {
     } finally {
       stopwatch.stop();
       final loaded = allCities.where((city) => city.weather != null).length;
-      _telemetry.log(TelemetryLevel.info, 'home.load', {
+      _telemetry.log.i('home.load', {
         'default_cities': AppConstants.cities.length,
         'saved_cities': savedCount,
         'cities_loaded': loaded,
@@ -87,7 +87,7 @@ class HomeViewModel extends ObservedViewModel {
   /// Opens the search screen and reloads the list if a city was added.
   Future<void> onAddCityTap() async {
     _telemetry.counter('ui.action', {'action': 'add_city'});
-    _telemetry.log(TelemetryLevel.debug, 'add city tapped');
+    _telemetry.log.d('add city tapped');
     final added = await _navigationService.navigateTo(Routes.addCityView);
     if (added == true) await init();
   }
@@ -131,7 +131,7 @@ class HomeViewModel extends ObservedViewModel {
     // TODO(lab-2.6) Counter, user actions: `ui.action` tagged action=card_tap
     _telemetry.counter('ui.action', {'action': 'card_tap'});
     // TODO(lab-1.7) Lifecycle: navigation. Replace the print here and in
-    _telemetry.log(TelemetryLevel.debug, 'card tapped', {'city_id': city.id});
+    _telemetry.log.d('card tapped', {'city_id': city.id});
     _navigationService.navigateTo(
       Routes.weatherDetailsView,
       arguments: WeatherDetailsViewArguments(city: city),
