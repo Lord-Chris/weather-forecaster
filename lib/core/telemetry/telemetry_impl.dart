@@ -4,6 +4,7 @@ import 'dart:math';
 import 'i_telemetry.dart';
 import 'span.dart';
 import 'telemetry_exporter.dart';
+import 'telemetry_logger.dart';
 import 'telemetry_record.dart';
 import 'telemetry_sanitizer.dart';
 
@@ -25,11 +26,13 @@ class TelemetryImpl implements ITelemetry {
   // ---- ITelemetry -----------------------------------------------------
 
   @override
-  void log(
+  late final TelemetryLogger log = TelemetryLogger(_log);
+
+  void _log(
     TelemetryLevel level,
-    String message, [
-    Map<String, Object?> fields = const {},
-  ]) {
+    String message,
+    Map<String, Object?> fields,
+  ) {
     final span = current;
     _exporter.exportLog(LogRecord(
       level: level,

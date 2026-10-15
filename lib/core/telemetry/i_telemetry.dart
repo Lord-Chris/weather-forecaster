@@ -1,13 +1,11 @@
 import 'span.dart';
-import 'telemetry_record.dart';
+import 'telemetry_logger.dart';
 
 /// The only thing the app talks to for observability.
 abstract class ITelemetry {
-  void log(
-    TelemetryLevel level,
-    String message, [
-    Map<String, Object?> fields = const {},
-  ]);
+  /// Structured logs: `telemetry.log.i('message', {'field': 1})`, with `d`, `i`,
+  /// `w` and `e` for the four levels. Also callable with an explicit level.
+  TelemetryLogger get log;
 
   void counter(String name, [Map<String, Object?> tags = const {}]);
 

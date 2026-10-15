@@ -40,7 +40,7 @@ The attendee tag is added to every log, metric and span so you can find your own
 
 Search for `TODO(lab-N)`.
 
-1. **Logs.** Ten TODOs, `TODO(lab-1.1)` to `TODO(lab-1.10)`, about 70% plain logs (seven) and 30% wide events (three). Work top to bottom: the order is what to touch first. Use the injected `ITelemetry` (`locator<ITelemetry>()`) and keep the existing `_log.e` calls. Each TODO sits at one primary spot and lists the others it applies to.
+1. **Logs.** Ten TODOs, `TODO(lab-1.1)` to `TODO(lab-1.10)`, about 70% plain logs (seven) and 30% wide events (three). Work top to bottom: the order is what to touch first. Use the injected `ITelemetry` (`locator<ITelemetry>()`) and keep the existing `_log.e` calls. Log with `telemetry.log.d(...)`, `.i(...)`, `.w(...)` or `.e(...)` plus a map of named fields, e.g. `telemetry.log.i('city saved', {'city_id': id})`. Each TODO sits at one primary spot and lists the others it applies to.
 
    **Logs (seven)**
 
