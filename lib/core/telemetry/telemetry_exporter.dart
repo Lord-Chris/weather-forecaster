@@ -44,19 +44,3 @@ class ConsoleExporter implements TelemetryExporter {
       'parent=${s.parentSpanId} ${s.duration.inMilliseconds}ms '
       '${s.attributes}${s.errorType == null ? '' : ' error=${s.errorType}'}');
 }
-
-/// Keeps everything in memory. Use it in tests.
-class InMemoryExporter implements TelemetryExporter {
-  final logs = <LogRecord>[];
-  final metrics = <MetricRecord>[];
-  final spans = <Span>[];
-
-  @override
-  void exportLog(LogRecord record) => logs.add(record);
-
-  @override
-  void exportMetric(MetricRecord record) => metrics.add(record);
-
-  @override
-  void exportSpan(Span span) => spans.add(span);
-}

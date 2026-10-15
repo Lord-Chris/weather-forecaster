@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:weather_forecast/core/telemetry/_telemetry.dart';
+import '../../helpers/in_memory_exporter.dart';
 
 void main() {
   late InMemoryExporter exporter;

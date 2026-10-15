@@ -91,11 +91,11 @@ class AddCityViewModel extends ObservedViewModel {
     } finally {
       stopwatch.stop();
       event['duration_ms'] = stopwatch.elapsedMilliseconds;
-      _telemetry.log(
-        event['success'] == true ? TelemetryLevel.info : TelemetryLevel.error,
-        'city.search',
-        event,
-      );
+      if (event['success'] == true) {
+        _telemetry.log.i('city.search', event);
+      } else {
+        _telemetry.log.e('city.search', event);
+      }
       _telemetry.counter('city.search.count', {'success': event['success']});
       _telemetry.timing('city.search.duration', stopwatch.elapsed);
     }

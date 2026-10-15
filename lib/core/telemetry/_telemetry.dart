@@ -9,3 +9,4 @@ export 'telemetry_sanitizer.dart';
 export 'traced.dart';
 export 'observed_viewmodel.dart';
 export 'telemetry_route_observer.dart';
+export 'sentry_exporter.dart';

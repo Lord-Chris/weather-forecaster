@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:weather_forecast/core/interceptors/telemetry_interceptor.dart';
 import 'package:weather_forecast/core/telemetry/_telemetry.dart';
+import '../../helpers/in_memory_exporter.dart';
 
 void main() {
   late InMemoryExporter exporter;

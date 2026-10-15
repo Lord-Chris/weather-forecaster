@@ -12,6 +12,7 @@ import '../../../../helpers/data_helpers.dart';
 import '../../../../helpers/helpers.dart';
 import '../../../../helpers/service_helpers.dart';
 import '../../data/dtos/air_quality_and_geo_model_test.dart';
+import '../../../../helpers/in_memory_exporter.dart';
 
 void main() {
   const city = CityLocationModel(id: '1', name: 'Lagos', lat: 6.5, lon: 3.4);

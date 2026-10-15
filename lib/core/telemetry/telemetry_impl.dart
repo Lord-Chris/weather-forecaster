@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'i_telemetry.dart';
+import 'sentry_exporter.dart';
 import 'span.dart';
 import 'telemetry_exporter.dart';
 import 'telemetry_logger.dart';
@@ -20,7 +21,7 @@ class TelemetryImpl implements Telemetry {
   final String _attendee;
 
   TelemetryImpl({TelemetryExporter? exporter, String? attendee})
-      : _exporter = exporter ?? ConsoleExporter(),
+      : _exporter = exporter ?? SentryExporter(),
         _attendee = attendee ?? TelemetryImpl.attendee;
 
   // ---- ITelemetry -----------------------------------------------------

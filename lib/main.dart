@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'core/app/_app.dart';
 import 'core/shared/constants/_constants.dart';
@@ -7,7 +8,16 @@ import 'core/telemetry/_telemetry.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _initServices();
-  runApp(const WeatherForecastApp());
+  if (SentryExporter.isSending) {
+    // Sentry only starts when sending is on (see SentryExporter); otherwise
+    // telemetry stays on the console.
+    await SentryFlutter.init(
+      SentryExporter.configure,
+      appRunner: () => runApp(const WeatherForecastApp()),
+    );
+  } else {
+    runApp(const WeatherForecastApp());
+  }
 }
 
 Future<void> _initServices() async {

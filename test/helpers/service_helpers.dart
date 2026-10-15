@@ -4,6 +4,7 @@ import 'package:weather_forecast/core/telemetry/_telemetry.dart';
 import 'package:weather_forecast/services/_services.dart';
 
 import 'helpers.dart';
+import 'in_memory_exporter.dart';
 
 /// Stacked services mock
 class MockNavigationService extends Mock implements NavigationService {}
