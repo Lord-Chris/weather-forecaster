@@ -5,7 +5,7 @@ import 'span.dart';
 
 /// One span per screen: starts on push, ends on pop.
 class TelemetryRouteObserver extends NavigatorObserver {
-  final ITelemetry _telemetry;
+  final Telemetry _telemetry;
   final _spans = <Route<dynamic>, Span>{};
 
   TelemetryRouteObserver(this._telemetry);

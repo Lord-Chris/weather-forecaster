@@ -1,8 +1,11 @@
+import '../app/app.locator.dart';
 import 'span.dart';
 import 'telemetry_logger.dart';
 
 /// The only thing the app talks to for observability.
-abstract class ITelemetry {
+abstract class Telemetry {
+  static Telemetry get instance => locator<Telemetry>();
+
   /// Structured logs: `telemetry.log.i('message', {'field': 1})`, with `d`, `i`,
   /// `w` and `e` for the four levels. Also callable with an explicit level.
   TelemetryLogger get log;

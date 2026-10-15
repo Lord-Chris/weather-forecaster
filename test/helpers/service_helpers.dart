@@ -59,9 +59,9 @@ ILocalStorage getAndRegisterLocalStorageService() {
 InMemoryExporter telemetryExporter = InMemoryExporter();
 
 InMemoryExporter getAndRegisterTelemetry() {
-  removeRegistrationIfExists<ITelemetry>();
+  removeRegistrationIfExists<Telemetry>();
   final exporter = telemetryExporter = InMemoryExporter();
-  locator.registerSingleton<ITelemetry>(
+  locator.registerSingleton<Telemetry>(
     TelemetryImpl(exporter: exporter, attendee: 'tester'),
   );
   return exporter;
@@ -82,5 +82,5 @@ void unregisterServices() {
   locator.unregister<IApi>();
   locator.unregister<IConnectivityService>();
   locator.unregister<ILocalStorage>();
-  removeRegistrationIfExists<ITelemetry>();
+  removeRegistrationIfExists<Telemetry>();
 }

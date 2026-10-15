@@ -9,7 +9,7 @@ import '../telemetry/_telemetry.dart';
 class TelemetryInterceptor extends Interceptor {
   static const _spanKey = 'telemetry.span';
 
-  final ITelemetry _telemetry;
+  final Telemetry _telemetry;
 
   TelemetryInterceptor(this._telemetry);
 

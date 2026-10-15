@@ -207,9 +207,9 @@ void main() {
       when(() => remote.get5DayForecast(any()))
           .thenAnswer((_) async => _FakeForecast());
       when(() => local.cacheForecast(any(), any())).thenAnswer((_) async {});
-      final parent = locator<ITelemetry>().startSpan('parent');
+      final parent = locator<Telemetry>().startSpan('parent');
 
-      await locator<ITelemetry>()
+      await locator<Telemetry>()
           .runWith(parent, () => repo.get5DayForecast(city));
       parent.end();
 

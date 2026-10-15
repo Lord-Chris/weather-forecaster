@@ -28,7 +28,7 @@ class WeatherForecastApp extends StatelessWidget {
       onGenerateRoute: StackedRouter().onGenerateRoute,
       navigatorObservers: [
         StackedService.routeObserver,
-        TelemetryRouteObserver(locator<ITelemetry>()),
+        TelemetryRouteObserver(locator<Telemetry>()),
       ],
     );
   }

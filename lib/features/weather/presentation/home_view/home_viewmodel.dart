@@ -10,7 +10,7 @@ class HomeViewModel extends ObservedViewModel {
   final _log = getLogger('HomeViewModel');
   final _weatherRepo = locator<WeatherRepo>();
   final _navigationService = locator<NavigationService>();
-  final _telemetry = locator<ITelemetry>();
+  final _telemetry = locator<Telemetry>();
 
   List<CityLocationModel> allCities = AppConstants.cities;
   final searchedCities = <CityLocationModel>[];
@@ -122,12 +122,7 @@ class HomeViewModel extends ObservedViewModel {
     } on IAppException catch (e, s) {
       _log.e(e);
       // TODO(lab-1.1) Errors in view models, touch these first (rare, most
-      _telemetry.logError('weather load failed', e,
-          fields: {
-            'viewmodel': 'HomeViewModel',
-            'operation': 'getCurrentWeather',
-          },
-          stackTrace: s);
+      _telemetry.logError('weather load failed', e, stackTrace: s);
     }
   }
 

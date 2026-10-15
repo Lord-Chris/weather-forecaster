@@ -8,9 +8,9 @@ import 'telemetry_logger.dart';
 import 'telemetry_record.dart';
 import 'telemetry_sanitizer.dart';
 
-/// Default [ITelemetry]. Adds the attendee tag to every record and applies
+/// Default [Telemetry]. Adds the attendee tag to every record and applies
 /// the privacy rules before handing data to the exporter.
-class TelemetryImpl implements ITelemetry {
+class TelemetryImpl implements Telemetry {
   static const attendee =
       String.fromEnvironment('ATTENDEE', defaultValue: 'unknown');
   static final _spanKey = Object();

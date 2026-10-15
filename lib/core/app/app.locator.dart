@@ -36,7 +36,7 @@ Future<void> setupLocator(
 
 // Register dependencies
   locator.registerLazySingleton(() => NavigationService());
-  locator.registerLazySingleton<ITelemetry>(() => TelemetryImpl());
+  locator.registerLazySingleton<Telemetry>(() => TelemetryImpl());
   final localStorageService = LocalStorageService();
   await localStorageService.init();
   locator.registerSingleton<ILocalStorage>(localStorageService);

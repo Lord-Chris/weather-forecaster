@@ -29,7 +29,7 @@ class ApiService extends IApi {
       };
     dio.interceptors.addAll([
       // TODO(lab-3.1) One span per request: add TelemetryInterceptor(locator<ITelemetry>())
-      TelemetryInterceptor(locator<ITelemetry>()),
+      TelemetryInterceptor(locator<Telemetry>()),
       ApiLoggerInterceptor(),
       if (kDebugMode && FaultInjectionInterceptor.isEnabled)
         FaultInjectionInterceptor(dio),
@@ -144,12 +144,15 @@ class ApiService extends IApi {
     } catch (e, s) {
       _log.e(e);
       // TODO(lab-1.2) Errors at boundaries: log the error type here, and in the
-      locator<ITelemetry>().logError('api request failed', e,
-          fields: {
-            'service': 'ApiService',
-            'operation': '_performRequest',
-          },
-          stackTrace: s);
+      Telemetry.instance.logError(
+        'api request failed',
+        e,
+        stackTrace: s,
+        fields: {
+          'service': 'ApiService',
+          'operation': '_performRequest',
+        },
+      );
       throw AppException(
         data: e,
         message:

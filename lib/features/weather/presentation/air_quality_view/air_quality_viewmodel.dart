@@ -8,7 +8,7 @@ import '../../data/repositories/weather_repo.dart';
 class AirQualityViewModel extends ObservedViewModel {
   final _log = getLogger('AirQualityViewModel');
   final _weatherRepo = locator<WeatherRepo>();
-  final _telemetry = locator<ITelemetry>();
+  final _telemetry = locator<Telemetry>();
 
   late CityLocationModel city;
   AirQualityModel? airQuality;

@@ -12,7 +12,7 @@ import '../dtos/weather_model.dart';
 /// A class that provides local data storage operations for weather-related data.
 class WeatherLocalSource {
   final _localStorageService = locator<ILocalStorage>();
-  final _telemetry = locator<ITelemetry>();
+  final _telemetry = locator<Telemetry>();
 
   void _cacheWritten(String cache, String cityId) =>
       _telemetry.log.d('cache written', {

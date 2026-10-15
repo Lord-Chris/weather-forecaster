@@ -7,10 +7,10 @@ import 'traced.dart';
 /// Base view model with one extra method, [observe]. Stacked has no global
 /// observer, so view models opt in by extending this instead of [BaseViewModel].
 abstract class ObservedViewModel extends BaseViewModel {
-  final ITelemetry _telemetry;
+  final Telemetry _telemetry;
 
-  ObservedViewModel([ITelemetry? telemetry])
-      : _telemetry = telemetry ?? locator<ITelemetry>();
+  ObservedViewModel([Telemetry? telemetry])
+      : _telemetry = telemetry ?? locator<Telemetry>();
 
   /// Runs [work] as this view model's busy period: busy turns on, [work] runs
   /// inside a span (so HTTP spans become its children), and busy turns off.

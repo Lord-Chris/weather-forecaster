@@ -31,7 +31,7 @@ void main() {
 
     tearDown(() {
       unregisterDataLayers();
-      removeRegistrationIfExists<ITelemetry>();
+      removeRegistrationIfExists<Telemetry>();
     });
 
     test('fetchAirQuality should set the reading when successful', () async {

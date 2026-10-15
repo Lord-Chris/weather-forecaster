@@ -28,7 +28,7 @@ import '../telemetry/_telemetry.dart';
   dependencies: [
     /// Services
     LazySingleton(classType: NavigationService),
-    LazySingleton(classType: TelemetryImpl, asType: ITelemetry),
+    LazySingleton(classType: TelemetryImpl, asType: Telemetry),
     InitializableSingleton(
       classType: LocalStorageService,
       asType: ILocalStorage,

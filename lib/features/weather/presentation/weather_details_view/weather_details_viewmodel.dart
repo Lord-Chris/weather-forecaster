@@ -2,15 +2,15 @@ import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/models/_models.dart';
 import '../../../../core/telemetry/_telemetry.dart';
-import '../../data/repositories/weather_repo.dart';
 import '../../data/dtos/city_location_model.dart';
 import '../../data/dtos/forecast_model.dart';
+import '../../data/repositories/weather_repo.dart';
 
 // TODO(lab-3.3) Details waterfall: extend ObservedViewModel and wrap the work in
 class WeatherDetailsViewModel extends ObservedViewModel {
   final _log = getLogger('WeatherDetailsViewModel');
   final _weatherRepo = locator<WeatherRepo>();
-  final _telemetry = locator<ITelemetry>();
+  final _telemetry = locator<Telemetry>();
 
   final _navigationService = locator<NavigationService>();
 

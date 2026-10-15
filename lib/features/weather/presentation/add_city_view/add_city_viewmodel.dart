@@ -10,7 +10,7 @@ class AddCityViewModel extends ObservedViewModel {
   final _log = getLogger('AddCityViewModel');
   final _weatherRepo = locator<WeatherRepo>();
   final _navigationService = locator<NavigationService>();
-  final _telemetry = locator<ITelemetry>();
+  final _telemetry = locator<Telemetry>();
 
   static const debounceDuration = Duration(milliseconds: 400);
 
