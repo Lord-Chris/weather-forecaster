@@ -27,12 +27,14 @@ class TelemetryInterceptor extends Interceptor {
   }
 
   // TODO(lab-2.1) Derive instead of hand-writing: record `http.client.requests`
+  // (counter, tags method and status_class such as 2xx, 4xx, 5xx, or `error`
+  // when no response came back) here in onResponse and onError. One place gives
+  // you the request rate and the error rate for every call.
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     final span = response.requestOptions.extra[_spanKey] as Span?;
     span?.setAttribute('http.status_code', response.statusCode);
     span?.end();
-    _recordRequest(response.requestOptions, response.statusCode);
     handler.next(response);
   }
 
@@ -43,17 +45,6 @@ class TelemetryInterceptor extends Interceptor {
     span?.setAttribute('error.type', err.type.name);
     span?.setError(err);
     span?.end();
-    _recordRequest(err.requestOptions, err.response?.statusCode);
     handler.next(err);
-  }
-
-  /// One counter for every request, tagged by method and status class (2xx,
-  /// 4xx, 5xx, or `error` when no response came back). Rate and error rate
-  /// both come from it.
-  void _recordRequest(RequestOptions options, int? statusCode) {
-    _telemetry.counter('http.client.requests', {
-      'method': options.method,
-      'status_class': statusCode == null ? 'error' : '${statusCode ~/ 100}xx',
-    });
   }
 }

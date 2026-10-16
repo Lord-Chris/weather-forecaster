@@ -7,10 +7,8 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/interceptors/fault_injection_interceptor.dart';
 import '../../../core/interceptors/logger_interceptor.dart';
-import '../../../core/interceptors/telemetry_interceptor.dart';
 import '../../core/app/_app.dart';
 import '../../core/shared/models/app_exception.dart';
-import '../../core/telemetry/_telemetry.dart';
 import 'i_api.dart';
 
 class ApiService extends IApi {
@@ -28,8 +26,9 @@ class ApiService extends IApi {
         'Connection': 'keep-alive',
       };
     dio.interceptors.addAll([
-      // TODO(lab-3.1) One span per request: add TelemetryInterceptor(locator<ITelemetry>())
-      TelemetryInterceptor(),
+      // TODO(lab-3.1) One span per request: add TelemetryInterceptor(locator<Telemetry>())
+      // here (and import it). Do this first; every later step hangs its spans off
+      // these.
       ApiLoggerInterceptor(),
       if (kDebugMode && FaultInjectionInterceptor.isEnabled)
         FaultInjectionInterceptor(dio),
@@ -141,18 +140,13 @@ class ApiService extends IApi {
       return data;
     } on DioException catch (e) {
       throw convertDioException(e);
-    } catch (e, s) {
+    } catch (e) {
       _log.e(e);
       // TODO(lab-1.2) Errors at boundaries: log the error type here, and in the
-      Telemetry.instance.logError(
-        'api request failed',
-        e,
-        stackTrace: s,
-        fields: {
-          'service': 'ApiService',
-          'operation': '_performRequest',
-        },
-      );
+      // WeatherRepo catch blocks that wrap unknown errors into
+      // FallbackAppException (the original type is lost once wrapped). Fields:
+      // service, operation, error.type. Pass the stack trace as the last
+      // argument too (`catch (e, s)`).
       throw AppException(
         data: e,
         message:

@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
+
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/models/_models.dart';
-import '../../../../core/telemetry/_telemetry.dart';
 import '../../../../services/_services.dart';
 import '../datasources/weather_local_source.dart';
 import '../datasources/weather_remote_source.dart';
@@ -12,14 +13,10 @@ import '../dtos/geo_location_model.dart';
 import '../dtos/weather_model.dart';
 
 /// Repository class for fetching weather data.
-///
-/// Each fetch builds one wide event (`weather.fetch`) as it runs and logs it
-/// once when it finishes, and times itself.
 class WeatherRepo {
   final _localSource = locator<WeatherLocalSource>();
   final _remoteSource = locator<WeatherRemoteSource>();
   final _connectivityService = locator<IConnectivityService>();
-  final _telemetry = locator<Telemetry>();
 
   /// Checks if the device is connected to the internet.
   Future<bool> get isConnected =>
@@ -35,65 +32,50 @@ class WeatherRepo {
   /// Throws [FallbackAppException] if a fallback exception occurs.
   Future<WeatherModel?> getCurrentWeather(CityLocationModel city) async {
     // TODO(lab-1.8) Wide event: weather fetch. Start a Stopwatch and a
+    // `final event = <String, Object?>{'operation': 'getCurrentWeather',
+    // 'city_id': city.id, 'success': true}` here, fill it as the branches below
+    // run (connected, source, fallback, cache_hit, error.type), and log it ONCE
+    // in a `finally` with duration_ms. Do the same in get5DayForecast and
+    // getAirQuality, then delete the fetch start/done prints in this repo.
     // TODO(lab-2.2) Timing, duration (the D in RED): `weather.fetch.duration` for
-    final stopwatch = Stopwatch()..start();
-    final event = _startFetch('getCurrentWeather', city);
-    StackTrace? failure;
+    // the whole call, tagged with the source (remote or cache). Reuse the
+    // Stopwatch from step 1.8 if you did it. Run with FAULT_RETRY=true and find
+    // the p95 spike: it only shows once timings are split by source.
+    debugPrint('weather fetch start city_id=${city.id}');
     try {
-      final connected = await isConnected;
-      event['connected'] = connected;
       // TODO(lab-1.3) Decisions: data source. Log each branch that changes what
-      if (connected) {
+      // the user sees (the prints below, the cache miss in _cachedWeather, and
+      // the same branches in get5DayForecast and getAirQuality) with named
+      // fields: source, offline, fallback, cache_hit.
+      if (await isConnected) {
         try {
           final weather = await _remoteSource.getCurrentWeather(city);
           await _localSource.cacheWeather(city.id, weather);
-          event['source'] = 'remote';
+          debugPrint('weather fetch done city_id=${city.id} source=remote');
           return weather;
         } on IAppException catch (e) {
           if (!WorkshopFlags.silentFallback) rethrow;
           // Silent failure (logs): the user sees stale data and no error.
-          // The wide event carries fallback=true, and this warning names the
-          // error that was swallowed.
-          event['source'] = 'cache';
-          event['fallback'] = true;
-          _telemetry.log.w('served cache after failure', {
-            'operation': 'getCurrentWeather',
-            'city_id': city.id,
-            'error.type': e.runtimeType.toString(),
-          });
-          return await _cachedWeather(city, event);
+          // The only evidence is the fallback marker on the line below.
+          debugPrint(
+              'weather fetch done city_id=${city.id} source=cache fallback=true error=${e.runtimeType}');
+          return await _cachedWeather(city);
         }
       }
-      event['source'] = 'cache';
-      return await _cachedWeather(city, event);
-    } on IAppException catch (e, s) {
-      event['success'] = false;
-      event['error.type'] = e.runtimeType.toString();
-      failure = s;
+      debugPrint(
+          'weather fetch done city_id=${city.id} source=cache offline=true');
+      return await _cachedWeather(city);
+    } on IAppException {
       rethrow;
-    } catch (e, s) {
+    } catch (e) {
       // The original error is wrapped and its type is lost from here on.
-      _telemetry.logError('unexpected error wrapped', e, stackTrace: s);
-      event['success'] = false;
-      event['error.type'] = 'FallbackAppException';
-      failure = s;
       throw FallbackAppException(data: e);
-    } finally {
-      _endFetch(event, stopwatch, failure);
     }
   }
 
-  Future<WeatherModel?> _cachedWeather(
-    CityLocationModel city,
-    Map<String, Object?> event,
-  ) async {
+  Future<WeatherModel?> _cachedWeather(CityLocationModel city) async {
     final cached = await _localSource.getCachedCurrentWeather(city.id);
-    event['cache_hit'] = cached != null;
-    if (cached == null) {
-      _telemetry.log.i('weather cache miss', {
-        'city_id': city.id,
-      });
-    }
+    if (cached == null) debugPrint('weather cache miss city_id=${city.id}');
     return cached;
   }
 
@@ -106,42 +88,25 @@ class WeatherRepo {
   /// Throws [IAppException] if an application-specific exception occurs.
   /// Throws [FallbackAppException] if a fallback exception occurs.
   Future<ForecastModel?> get5DayForecast(CityLocationModel city) async {
-    final stopwatch = Stopwatch()..start();
-    final event = _startFetch('get5DayForecast', city);
-    StackTrace? failure;
+    debugPrint('forecast fetch start city_id=${city.id}');
     try {
-      final connected = await isConnected;
-      event['connected'] = connected;
-      if (connected) {
+      if (await isConnected) {
         // TODO(lab-3.4) Child span in the repo: wrap the remote call in `traced(...)`
-        final forecast = await traced(
-          'remote get5DayForecast',
-          () => _remoteSource.get5DayForecast(city),
-          telemetry: _telemetry,
-        );
+        // so the waterfall shows where the time goes inside the fetch, not just
+        // that it was slow.
+        final forecast = await _remoteSource.get5DayForecast(city);
         await _localSource.cacheForecast(city.id, forecast);
-        event['source'] = 'remote';
+        debugPrint('forecast fetch done city_id=${city.id} source=remote');
         return forecast;
       }
       final cached = await _localSource.getCachedForecast(city.id);
-      event['source'] = 'cache';
-      event['cache_hit'] = cached != null;
+      debugPrint(
+          'forecast fetch done city_id=${city.id} source=cache offline=true cache_hit=${cached != null}');
       return cached;
-    } on IAppException catch (e, s) {
-      event['success'] = false;
-      event['error.type'] = e.runtimeType.toString();
-      failure = s;
+    } on IAppException {
       rethrow;
-    } catch (e, s) {
-      _telemetry.logError('unexpected error wrapped', e,
-          fields: {'service': 'WeatherRepo', 'operation': 'get5DayForecast'},
-          stackTrace: s);
-      event['success'] = false;
-      event['error.type'] = 'FallbackAppException';
-      failure = s;
+    } catch (e) {
       throw FallbackAppException(data: e);
-    } finally {
-      _endFetch(event, stopwatch, failure);
     }
   }
 
@@ -151,37 +116,17 @@ class WeatherRepo {
   /// Throws [IAppException] if an application-specific exception occurs.
   /// Throws [FallbackAppException] if a fallback exception occurs.
   Future<AirQualityModel?> getAirQuality(CityLocationModel city) async {
-    final stopwatch = Stopwatch()..start();
-    final event = _startFetch('getAirQuality', city);
-    StackTrace? failure;
     try {
-      final connected = await isConnected;
-      event['connected'] = connected;
-      if (connected) {
+      if (await isConnected) {
         final airQuality = await _remoteSource.getAirQuality(city);
         await _localSource.cacheAirQuality(city.id, airQuality);
-        event['source'] = 'remote';
         return airQuality;
       }
-      final cached = await _localSource.getCachedAirQuality(city.id);
-      event['source'] = 'cache';
-      event['cache_hit'] = cached != null;
-      return cached;
-    } on IAppException catch (e, s) {
-      event['success'] = false;
-      event['error.type'] = e.runtimeType.toString();
-      failure = s;
+      return await _localSource.getCachedAirQuality(city.id);
+    } on IAppException {
       rethrow;
-    } catch (e, s) {
-      _telemetry.logError('unexpected error wrapped', e,
-          fields: {'service': 'WeatherRepo', 'operation': 'getAirQuality'},
-          stackTrace: s);
-      event['success'] = false;
-      event['error.type'] = 'FallbackAppException';
-      failure = s;
+    } catch (e) {
       throw FallbackAppException(data: e);
-    } finally {
-      _endFetch(event, stopwatch, failure);
     }
   }
 
@@ -190,23 +135,11 @@ class WeatherRepo {
   /// Throws [InternetAppException] when offline.
   Future<List<GeoLocationModel>> searchCities(String query) async {
     try {
-      if (!await isConnected) {
-        _telemetry.log.w('search refused', {
-          'reason': 'offline',
-          'query_length': query.length,
-        });
-        throw InternetAppException();
-      }
+      if (!await isConnected) throw InternetAppException();
       return await _remoteSource.searchCities(query);
     } on IAppException {
       rethrow;
-    } catch (e, s) {
-      _telemetry.logError('unexpected error wrapped', e,
-          fields: {
-            'service': 'WeatherRepo',
-            'operation': 'searchCities',
-          },
-          stackTrace: s);
+    } catch (e) {
       throw FallbackAppException(data: e);
     }
   }
@@ -219,36 +152,9 @@ class WeatherRepo {
   Future<void> saveCity(CityLocationModel city) async {
     final saved = await _localSource.getSavedCities();
     // TODO(lab-1.4) Silent drops: the app skips these without telling the user.
-    if (saved.any((e) => e.id == city.id)) {
-      _telemetry.log.i('city save skipped', {
-        'reason': 'duplicate',
-        'city_id': city.id,
-      });
-      return;
-    }
+    // Log the duplicate skip here, the stale search response and the too-short
+    // query in AddCityViewModel, and the offline refusal in searchCities.
+    if (saved.any((e) => e.id == city.id)) return;
     await _localSource.saveCities([...saved, city]);
-  }
-
-  /// Starts the wide event for a fetch: a plain map that the method fills in
-  /// as it learns things, and logs once at the end.
-  Map<String, Object?> _startFetch(String operation, CityLocationModel city) {
-    return {'operation': operation, 'city_id': city.id, 'success': true};
-  }
-
-  /// Logs the wide event once and times the fetch (Lab 2), tagged by source.
-  void _endFetch(
-    Map<String, Object?> event,
-    Stopwatch stopwatch,
-    StackTrace? failure,
-  ) {
-    event['duration_ms'] = stopwatch.elapsedMilliseconds;
-    final operation = event['operation'];
-    final tags = {'operation': operation, 'source': event['source'] ?? 'none'};
-    _telemetry.timing('weather.fetch.duration', stopwatch.elapsed, tags);
-    if (event['success'] == false) {
-      _telemetry.log.e('weather.fetch', event, failure);
-    } else {
-      _telemetry.log.i('weather.fetch', event);
-    }
   }
 }

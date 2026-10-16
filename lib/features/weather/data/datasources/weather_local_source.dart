@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
-import '../../../../core/telemetry/_telemetry.dart';
 import '../../../../services/_services.dart';
 import '../dtos/air_quality_model.dart';
 import '../dtos/city_location_model.dart';
@@ -12,20 +11,6 @@ import '../dtos/weather_model.dart';
 /// A class that provides local data storage operations for weather-related data.
 class WeatherLocalSource {
   final _localStorageService = locator<ILocalStorage>();
-  final _telemetry = locator<Telemetry>();
-
-  /// Two counters (`cache.hit`, `cache.miss`); the dashboard divides them, so
-  /// no ratio is stored.
-  void _recordLookup(String cache, {required bool hit}) {
-    // TODO(lab-2.3) Counters, cache: `cache.hit` or `cache.miss` with a `cache`
-    _telemetry.counter(hit ? 'cache.hit' : 'cache.miss', {'cache': cache});
-  }
-
-  void _cacheWritten(String cache, String cityId) =>
-      _telemetry.log.d('cache written', {
-        'cache': cache,
-        'city_id': cityId,
-      });
 
   /// Caches the weather data for a specific city.
   ///
@@ -37,7 +22,6 @@ class WeatherLocalSource {
       key: cityId,
       value: weather.toJson(),
     );
-    _cacheWritten('weather', cityId);
   }
 
   /// Retrieves the cached current weather data for a specific city.
@@ -46,11 +30,13 @@ class WeatherLocalSource {
   /// Returns the [WeatherModel] object representing the current weather data,
   /// or null if the data is not found in the cache.
   Future<WeatherModel?> getCachedCurrentWeather(String cityId) async {
+    // TODO(lab-2.3) Counters, cache: `cache.hit` or `cache.miss` with a `cache`
+    // tag (weather, forecast, air_quality), here and in the two other cached
+    // reads. Record two counters, not a ratio: the dashboard divides them.
     final weather = await _localStorageService.get(
       StorageKeys.weatherBox,
       key: cityId,
     );
-    _recordLookup('weather', hit: weather != null);
     return weather != null ? WeatherModel.fromJson(weather) : null;
   }
 
@@ -64,7 +50,6 @@ class WeatherLocalSource {
       key: cityId,
       value: forecast.toJson(),
     );
-    _cacheWritten('forecast', cityId);
   }
 
   /// Retrieves the cached forecast data for a specific city.
@@ -77,7 +62,6 @@ class WeatherLocalSource {
       StorageKeys.forecastBox,
       key: cityId,
     );
-    _recordLookup('forecast', hit: forecast != null);
     return forecast != null ? ForecastModel.fromJson(forecast) : null;
   }
 
@@ -89,7 +73,6 @@ class WeatherLocalSource {
       key: cityId,
       value: airQuality.toJson(),
     );
-    _cacheWritten('air_quality', cityId);
   }
 
   /// Retrieves the cached air quality for a city, or null if none is cached.
@@ -98,7 +81,6 @@ class WeatherLocalSource {
       StorageKeys.airQualityBox,
       key: cityId,
     );
-    _recordLookup('air_quality', hit: airQuality != null);
     return airQuality != null ? AirQualityModel.fromJson(airQuality) : null;
   }
 
@@ -109,42 +91,22 @@ class WeatherLocalSource {
       key: StorageKeys.savedCitiesKey,
       value: json.encode(cities.map((e) => e.toMap()).toList()),
     );
-    _telemetry.log.i('saved cities written', {'saved_count': cities.length});
   }
 
   /// Returns the cities the user added, or an empty list.
-  Future<List<CityLocationModel>> getSavedCities() {
-    // TODO(lab-3.5) Storage span: wrap this read in `traced(...)`.
+  Future<List<CityLocationModel>> getSavedCities() async {
+    // TODO(lab-3.5) Storage span: wrap this read in `traced(...)`. Not every
+    // slow step is the network; local storage shows up as its own bar.
     // TODO(lab-1.5) State and persistence: log what was read and written to
-    return traced('storage read saved_cities', () async {
-      final raw = await _localStorageService.get(
-        StorageKeys.savedCitiesBox,
-        key: StorageKeys.savedCitiesKey,
-      );
-      if (raw == null) {
-        _telemetry.log.i('saved cities read', {
-          'saved_count': 0,
-          'cache_hit': false,
-        });
-        return <CityLocationModel>[];
-      }
-      try {
-        final cities = (json.decode(raw as String) as List)
-            .map((e) => CityLocationModel.fromMap(e as Map<String, dynamic>))
-            .toList();
-        _telemetry.log.i('saved cities read', {
-          'saved_count': cities.length,
-          'cache_hit': true,
-        });
-        return cities;
-      } catch (e, s) {
-        _telemetry.logError('saved cities parse failed', e,
-            fields: {
-              'operation': 'getSavedCities',
-            },
-            stackTrace: s);
-        rethrow;
-      }
-    }, telemetry: _telemetry);
+    // storage here and in saveCities (saved_count, cache_hit, parse failures),
+    // and what cacheWeather, cacheForecast and cacheAirQuality wrote (city_id).
+    final raw = await _localStorageService.get(
+      StorageKeys.savedCitiesBox,
+      key: StorageKeys.savedCitiesKey,
+    );
+    if (raw == null) return [];
+    return (json.decode(raw as String) as List)
+        .map((e) => CityLocationModel.fromMap(e as Map<String, dynamic>))
+        .toList();
   }
 }

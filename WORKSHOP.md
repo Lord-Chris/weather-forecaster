@@ -40,7 +40,7 @@ The attendee tag is added to every log, metric and span so you can find your own
 
 Search for `TODO(lab-N)`.
 
-1. **Logs.** Ten TODOs, `TODO(lab-1.1)` to `TODO(lab-1.10)`, about 70% plain logs (seven) and 30% wide events (three). Work top to bottom: the order is what to touch first. Use the injected `ITelemetry` (`locator<ITelemetry>()`) and keep the existing `_log.e` calls. Log with `telemetry.log.d(...)`, `.i(...)`, `.w(...)` or `.e(...)` plus a map of named fields, e.g. `telemetry.log.i('city saved', {'city_id': id})`. For a caught error, use `catch (e, s)` and pass the stack trace as the last argument: `telemetry.log.e('load failed', {'error.type': e.runtimeType.toString()}, s)`. Each TODO sits at one primary spot and lists the others it applies to.
+1. **Logs.** Ten TODOs, `TODO(lab-1.1)` to `TODO(lab-1.10)`, about 70% plain logs (seven) and 30% wide events (three). Work top to bottom: the order is what to touch first. Use the injected `Telemetry` (`locator<Telemetry>()`) and keep the existing `_log.e` calls. Log with `telemetry.log.d(...)`, `.i(...)`, `.w(...)` or `.e(...)` plus a map of named fields, e.g. `telemetry.log.i('city saved', {'city_id': id})`. For a caught error, use `catch (e, s)` and pass the stack trace as the last argument: `telemetry.log.e('load failed', {'error.type': e.runtimeType.toString()}, s)`. Each TODO sits at one primary spot and lists the others it applies to.
 
    **Logs (seven)**
 
@@ -64,40 +64,34 @@ Search for `TODO(lab-N)`.
 
    Each event is built up in a plain map and logged once in a `finally`. The three sit at different levels (a call, a user action, a whole flow) so you can see how the same idea scales. After 1.8, delete the fetch start/done logs you wrote for 1.3: one line tells the whole story.
 
-2. **Metrics.** Ten TODOs, `TODO(lab-2.1)` to `TODO(lab-2.10)`: seven core metrics (70%) and three advanced (30%). Same rule as Lab 1: top to bottom is what to touch first. Pick the type from the question: *how many* is a counter, *how long* is a timing, *what is it now* is a gauge. Tags stay low-cardinality (`source`, `operation`, `error.type`), never an id.
+2. **Metrics.** Five TODOs, `TODO(lab-2.1)` to `TODO(lab-2.5)`, each in a different layer, so you open five different files. Pick the type from the question: *how many* is a counter, *how long* is a timing, *what is it now* is a gauge. Tags stay low-cardinality (`source`, `method`, `status_class`), never an id.
 
-   | Step | Metric | Type |
-   |---|---|---|
-   | 2.1 | `weather.fetch.attempts` | counter (Rate) |
-   | 2.2 | `weather.fetch.errors` by `error.type` | counter (Errors) |
-   | 2.3 | `weather.fetch.duration` | timing (Duration) |
-   | 2.4 | `cache.hit` / `cache.miss` by `cache` | two counters, not a ratio |
-   | 2.5 | `city.search.count`, `city.search.duration`, `city.search.stale_discarded` | counters and timing |
-   | 2.6 | `ui.action` by `action` | counter |
-   | 2.7 | `cities.saved`, `cities.displayed`, `weather.fetch.in_flight` | gauges |
-   | 2.8 | *Advanced:* split 2.3 by `source`, then find the `FAULT_RETRY` tail at p95 | timing with a tag |
-   | 2.9 | *Advanced:* `screen.load.duration` by `screen` | user-perceived timing |
-   | 2.10 | *Advanced:* `http.client.requests` and `http.client.duration` from `TelemetryInterceptor`, so no call site needs a metric call | derived metrics |
+   | Step | Where | Metric | Type |
+   |---|---|---|---|
+   | 2.1 | `TelemetryInterceptor` (network) | `http.client.requests` by `method` and `status_class` | counter: rate and error rate in one |
+   | 2.2 | `WeatherRepo` (data) | `weather.fetch.duration` tagged with `source`; find the `FAULT_RETRY` tail at p95 | timing |
+   | 2.3 | `WeatherLocalSource` (storage) | `cache.hit` / `cache.miss` by `cache` | two counters, not a ratio |
+   | 2.4 | `HomeViewModel` (home screen) | `cities.saved` | gauge |
+   | 2.5 | `AddCityViewModel` (add-city screen) | `city.search.stale_discarded` | counter for a silent drop |
 
-3. **Traces.** Ten TODOs, `TODO(lab-3.1)` to `TODO(lab-3.10)`: seven core (70%) and three advanced (30%). Start with 3.1: every later span hangs off the request spans. A span that is never ended is never exported, so the waterfall shows a gap.
+3. **Traces.** Five TODOs, `TODO(lab-3.1)` to `TODO(lab-3.5)`, each in a different layer. Start with 3.1: every later span hangs off the request spans. A span that is never ended is never exported, so the waterfall shows a gap.
 
-   | Step | Do | You should see |
-   |---|---|---|
-   | 3.1 | Add `TelemetryInterceptor` in `ApiService` | one span per HTTP request |
-   | 3.2 | `HomeViewModel` extends `ObservedViewModel`, wrap the load in `observe(...)` | one view model span, one parallel request span per city |
-   | 3.3 | Same for `WeatherDetailsViewModel` | with `SILENT_DUPLICATE_REQUEST=true`, two sibling request spans |
-   | 3.4 | Same for `AirQualityViewModel` | a second fetch shaped like the forecast one |
-   | 3.5 | Same for `AddCityViewModel.search` | spans only for searches that fire; debounced keystrokes make none |
-   | 3.6 | Add attributes to the current span (counts and flags only) | attributes on the span, privacy denylist respected |
-   | 3.7 | Move the catch outside `observe()` so errors reach the span | `error.type` on the span with `FAULT_FAIL_RATE=100` |
-   | 3.8 | *Advanced:* `traced(...)` around connectivity check, remote call and cache write in the repo | where the time goes inside a fetch |
-   | 3.9 | *Advanced:* `traced(...)` around local storage reads and writes | storage as its own bar |
-   | 3.10 | *Advanced:* log inside the observed work | the log carries the same trace and span id as its span |
+   | Step | Where | Do | You should see |
+   |---|---|---|---|
+   | 3.1 | `ApiService` (network) | add `TelemetryInterceptor` | one span per HTTP request |
+   | 3.2 | `HomeViewModel` (home screen) | extend `ObservedViewModel`, wrap the load in `observe(...)` | one view model span, one parallel request span per city |
+   | 3.3 | `WeatherDetailsViewModel` (details screen) | same, with the try/catch kept outside `observe()` | with `SILENT_DUPLICATE_REQUEST=true`, two sibling request spans; with `FAULT_FAIL_RATE=100`, `error.type` on the span |
+   | 3.4 | `WeatherRepo` (data) | wrap the remote forecast call in `traced(...)` | a child span: where the time goes inside the fetch |
+   | 3.5 | `WeatherLocalSource` (storage) | wrap `getSavedCities` in `traced(...)` | local storage as its own bar |
 
 4. **Migrating an existing code base (partial).** Instrument without touching every call site: forward existing `package:logger` output to telemetry with a `LogOutput`, and carry the trace with a `Zone` so no span is passed by hand. Metrics approach to be decided.
 
-Outside Lab 1, `ITelemetry` is injected everywhere (registered in the locator), so tests can swap in `InMemoryExporter`.
+Outside Lab 1, `Telemetry` is injected everywhere (registered in the locator), so tests can swap in an in-memory exporter.
 
 ## Branches
 
-`workshop/main` is the starter. `workshop/solution` forks from it with every lab step (1.1 to 3.10) implemented. The first line of each `TODO(lab-N.M)` comment is kept there so you can find the step; the rest of the TODO text is removed. `main` is not used.
+`workshop/main` is the starter: the telemetry layer is provided and each lab step is a `TODO(lab-N.M)` with its instructions. `workshop/solution` is the same code with every step implemented. The first line of each TODO is kept on the solution so you can search for a step on either branch. `main` is not used.
+
+## Sending to Sentry (optional)
+
+Telemetry always prints to the console. To also send it to Sentry, put your DSN in `env.json` (`SENTRY_DSN`) and run with `--dart-define-from-file=env.json`. Debug builds only print unless `SEND_ON_DEBUG` is `true`.

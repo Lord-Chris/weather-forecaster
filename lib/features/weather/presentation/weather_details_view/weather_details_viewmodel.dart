@@ -1,16 +1,21 @@
+import 'package:flutter/foundation.dart';
+import 'package:stacked/stacked.dart';
+
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/constants/_constants.dart';
 import '../../../../core/shared/models/_models.dart';
-import '../../../../core/telemetry/_telemetry.dart';
 import '../../data/dtos/city_location_model.dart';
 import '../../data/dtos/forecast_model.dart';
 import '../../data/repositories/weather_repo.dart';
 
 // TODO(lab-3.3) Details waterfall: extend ObservedViewModel and wrap the work in
-class WeatherDetailsViewModel extends ObservedViewModel {
+// fetchForecast() with `observe(() async { ... })`, keeping the try/catch
+// OUTSIDE observe() so a failure reaches the span. Run with
+// SILENT_DUPLICATE_REQUEST=true (two sibling request spans) and
+// FAULT_FAIL_RATE=100 (error.type on the span).
+class WeatherDetailsViewModel extends BaseViewModel {
   final _log = getLogger('WeatherDetailsViewModel');
   final _weatherRepo = locator<WeatherRepo>();
-  final _telemetry = locator<Telemetry>();
 
   final _navigationService = locator<NavigationService>();
 
@@ -19,7 +24,7 @@ class WeatherDetailsViewModel extends ObservedViewModel {
 
   void init(CityLocationModel city) {
     this.city = city;
-    _telemetry.log.d('details opened', {'city_id': city.id});
+    debugPrint('details opened city_id=${city.id}');
     fetchForecast();
     // Silent failure (traces): one tap sends the same request twice. Nothing
     // crashes; the only evidence is two sibling request spans.
@@ -36,26 +41,18 @@ class WeatherDetailsViewModel extends ObservedViewModel {
   ///   - [IAppException]: If an error occurs while fetching the forecast.
   Future<void> fetchForecast() async {
     try {
-      // The try/catch stays outside observe() so a failure reaches the span.
-      await observe(() async {
-        _forecast = await _weatherRepo.get5DayForecast(city);
-      });
-    } on IAppException catch (e, s) {
+      setBusy(true);
+      _forecast = await _weatherRepo.get5DayForecast(city);
+    } on IAppException catch (e) {
       _log.e(e);
-      _telemetry.logError('forecast load failed', e,
-          fields: {
-            'viewmodel': 'WeatherDetailsViewModel',
-            'operation': 'fetchForecast',
-          },
-          stackTrace: s);
+    } finally {
+      setBusy(false);
     }
   }
 
   /// Opens the air quality screen for the current city.
   void onAirQualityTap() {
-    _telemetry.log.d('air quality tapped', {
-      'city_id': city.id,
-    });
+    debugPrint('air quality tapped city_id=${city.id}');
     _navigationService.navigateTo(
       Routes.airQualityView,
       arguments: AirQualityViewArguments(city: city),

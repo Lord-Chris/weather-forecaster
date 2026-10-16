@@ -71,45 +71,4 @@ void main() {
     expect(exporter.spans.single.isEnded, true);
     expect(exporter.spans.single.errorType, 'DioException');
   });
-
-  group('derived metrics', () {
-    test('counts the request, tagged by method and status class', () async {
-      adapter.onGet('https://api.test/weather', (s) => s.reply(200, {}));
-
-      await dio.get('https://api.test/weather');
-
-      final requests =
-          exporter.metrics.firstWhere((m) => m.name == 'http.client.requests');
-      expect(requests.kind, MetricKind.counter);
-      expect(requests.tags['method'], 'GET');
-      expect(requests.tags['status_class'], '2xx');
-    });
-
-    test('tags a failed response with its status class', () async {
-      adapter.onGet('https://api.test/weather', (s) => s.reply(404, {}));
-
-      await expectLater(
-          dio.get('https://api.test/weather'), throwsA(isA<DioException>()));
-
-      final requests =
-          exporter.metrics.firstWhere((m) => m.name == 'http.client.requests');
-      expect(requests.tags['status_class'], '4xx');
-    });
-
-    test('tags a request with no response as error', () async {
-      dio.interceptors.add(InterceptorsWrapper(
-        onRequest: (options, handler) => handler.reject(
-          DioException.connectionError(requestOptions: options, reason: 'x'),
-          true,
-        ),
-      ));
-
-      await expectLater(
-          dio.get('https://api.test/weather'), throwsA(isA<DioException>()));
-
-      final requests =
-          exporter.metrics.firstWhere((m) => m.name == 'http.client.requests');
-      expect(requests.tags['status_class'], 'error');
-    });
-  });
 }
