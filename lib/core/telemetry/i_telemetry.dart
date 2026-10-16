@@ -27,6 +27,16 @@ abstract class Telemetry {
   /// The span new child spans attach to, read from the current [Zone].
   Span? get current;
 
+  /// The route name of the screen on top, stamped as `screen` on every span,
+  /// log and metric. Null before the first named route is pushed.
+  String? get currentScreen;
+
+  /// Called by the route observer when [name] becomes the visible screen.
+  void enterScreen(String name);
+
+  /// Called by the route observer when [name] is popped, removed or replaced.
+  void leaveScreen(String name);
+
   /// Runs [body] with [span] as [current]. The span is visible across awaits.
   T runWith<T>(Span span, T Function() body);
 }

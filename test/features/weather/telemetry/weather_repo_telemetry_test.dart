@@ -78,7 +78,7 @@ void main() {
       expect(event.stackTrace, isNull);
     });
 
-    test('attempts, duration and the in-flight gauge are recorded', () async {
+    test('the duration is timed and tagged with the source', () async {
       online(true);
       when(() => remote.getCurrentWeather(any()))
           .thenAnswer((_) async => _FakeWeather());
@@ -86,21 +86,14 @@ void main() {
 
       await repo.getCurrentWeather(city);
 
-      final attempts = metric('weather.fetch.attempts');
-      expect(attempts.kind, MetricKind.counter);
-      expect(attempts.tags['operation'], 'getCurrentWeather');
-      expect(attempts.tags['source'], 'remote');
-      expect(attempts.tags.containsKey('city_id'), isFalse);
-      expect(metric('weather.fetch.duration').kind, MetricKind.timing);
-      final inFlight = telemetryExporter.metrics
-          .where((m) => m.name == 'weather.fetch.in_flight')
-          .map((m) => m.value)
-          .toList();
-      expect(inFlight, [1, 0]);
+      final duration = metric('weather.fetch.duration');
+      expect(duration.kind, MetricKind.timing);
+      expect(duration.tags['operation'], 'getCurrentWeather');
+      expect(duration.tags['source'], 'remote');
+      expect(duration.tags.containsKey('city_id'), isFalse);
     });
 
-    test('offline with a cache hit records source, cache_hit and cache.hit',
-        () async {
+    test('offline with a cache hit records source and cache_hit', () async {
       online(false);
       when(() => local.getCachedCurrentWeather('7'))
           .thenAnswer((_) async => _FakeWeather());
@@ -111,10 +104,9 @@ void main() {
       expect(event.fields['connected'], false);
       expect(event.fields['source'], 'cache');
       expect(event.fields['cache_hit'], true);
-      expect(metric('cache.hit').tags['cache'], 'weather');
     });
 
-    test('offline with a cache miss records cache.miss and a miss log',
+    test('offline with a cache miss records cache_hit false and a miss log',
         () async {
       online(false);
       when(() => local.getCachedCurrentWeather('7'))
@@ -123,15 +115,13 @@ void main() {
       await repo.getCurrentWeather(city);
 
       expect(events().single.fields['cache_hit'], false);
-      expect(metric('cache.miss').tags['cache'], 'weather');
       expect(
         telemetryExporter.logs.any((l) => l.message == 'weather cache miss'),
         isTrue,
       );
     });
 
-    test('an app error emits one error event, counts the error and rethrows',
-        () async {
+    test('an app error emits one error event and rethrows', () async {
       online(true);
       when(() => remote.getCurrentWeather(any()))
           .thenThrow(InternetAppException());
@@ -146,9 +136,6 @@ void main() {
       expect(event.fields['success'], false);
       expect(event.fields['error.type'], 'InternetAppException');
       expect(event.stackTrace, isNotNull);
-      final errors = metric('weather.fetch.errors');
-      expect(errors.tags['error.type'], 'InternetAppException');
-      expect(errors.tags['operation'], 'getCurrentWeather');
     });
 
     test('an unexpected error keeps its original type before it is wrapped',
@@ -196,13 +183,11 @@ void main() {
       final event = events().single;
       expect(event.fields['operation'], 'get5DayForecast');
       expect(event.fields['cache_hit'], false);
-      expect(metric('cache.miss').tags['cache'], 'forecast');
     });
   });
 
   group('child spans', () {
-    test('forecast shows the connectivity check, remote call and cache write',
-        () async {
+    test('forecast shows the remote call as a child span', () async {
       online(true);
       when(() => remote.get5DayForecast(any()))
           .thenAnswer((_) async => _FakeForecast());
@@ -215,12 +200,8 @@ void main() {
 
       final children =
           telemetryExporter.spans.where((s) => s.name != 'parent').toList();
-      expect(children.map((s) => s.name), [
-        'connectivity check',
-        'remote get5DayForecast',
-        'cache write forecast',
-      ]);
-      expect(children.every((s) => s.parentSpanId == parent.spanId), isTrue);
+      expect(children.map((s) => s.name), ['remote get5DayForecast']);
+      expect(children.single.parentSpanId, parent.spanId);
     });
   });
 

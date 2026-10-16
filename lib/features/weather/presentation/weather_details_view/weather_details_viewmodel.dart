@@ -35,38 +35,24 @@ class WeatherDetailsViewModel extends ObservedViewModel {
   /// Throws:
   ///   - [IAppException]: If an error occurs while fetching the forecast.
   Future<void> fetchForecast() async {
-    // TODO(lab-2.9) Timing, user-perceived latency: `screen.load.duration` with
-    final stopwatch = Stopwatch()..start();
     try {
       // The try/catch stays outside observe() so a failure reaches the span.
       await observe(() async {
-        // TODO(lab-3.10) Correlate logs and traces: inside the observed work, log a
-        _telemetry.log.i('forecast fetch', {
-          'city_id': city.id,
-        });
         _forecast = await _weatherRepo.get5DayForecast(city);
       });
     } on IAppException catch (e, s) {
       _log.e(e);
-      // TODO(lab-3.7) Errors on spans: this catch swallows the error INSIDE
       _telemetry.logError('forecast load failed', e,
           fields: {
             'viewmodel': 'WeatherDetailsViewModel',
             'operation': 'fetchForecast',
           },
           stackTrace: s);
-    } finally {
-      _telemetry.timing(
-        'screen.load.duration',
-        stopwatch.elapsed,
-        {'screen': 'details'},
-      );
     }
   }
 
   /// Opens the air quality screen for the current city.
   void onAirQualityTap() {
-    _telemetry.counter('ui.action', {'action': 'air_quality'});
     _telemetry.log.d('air quality tapped', {
       'city_id': city.id,
     });

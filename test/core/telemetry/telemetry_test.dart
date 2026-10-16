@@ -106,4 +106,31 @@ void main() {
       );
     });
   });
+
+  group('current screen', () {
+    test('is stamped on spans, logs and metrics and restored on leave', () {
+      telemetry.enterScreen('/');
+      telemetry.enterScreen('/add-city-view');
+
+      telemetry.startSpan('http GET').end();
+      telemetry.log.i('hello');
+      telemetry.counter('taps');
+
+      expect(exporter.spans.single.attributes['screen'], '/add-city-view');
+      expect(exporter.logs.single.fields['screen'], '/add-city-view');
+      expect(exporter.metrics.single.tags['screen'], '/add-city-view');
+
+      telemetry.leaveScreen('/add-city-view');
+      expect(telemetry.currentScreen, '/');
+      telemetry.leaveScreen('/');
+      expect(telemetry.currentScreen, isNull);
+    });
+
+    test('an explicit screen attribute wins', () {
+      telemetry.enterScreen('/');
+      telemetry.startSpan('screen /x', attributes: {'screen': '/x'}).end();
+
+      expect(exporter.spans.single.attributes['screen'], '/x');
+    });
+  });
 }

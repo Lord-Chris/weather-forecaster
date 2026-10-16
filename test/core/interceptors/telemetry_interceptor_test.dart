@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:weather_forecast/core/app/_app.dart';
 import 'package:weather_forecast/core/interceptors/telemetry_interceptor.dart';
 import 'package:weather_forecast/core/telemetry/_telemetry.dart';
+import '../../helpers/helpers.dart';
 import '../../helpers/in_memory_exporter.dart';
 
 void main() {
@@ -16,7 +18,9 @@ void main() {
     telemetry = TelemetryImpl(exporter: exporter, attendee: 'tester');
     dio = Dio();
     adapter = DioAdapter(dio: dio);
-    dio.interceptors.add(TelemetryInterceptor(telemetry));
+    removeRegistrationIfExists<Telemetry>();
+    locator.registerSingleton<Telemetry>(telemetry);
+    dio.interceptors.add(TelemetryInterceptor());
   });
 
   test('records one span with status code and no query string', () async {
@@ -69,7 +73,7 @@ void main() {
   });
 
   group('derived metrics', () {
-    test('counts the request and times it, tagged by status class', () async {
+    test('counts the request, tagged by method and status class', () async {
       adapter.onGet('https://api.test/weather', (s) => s.reply(200, {}));
 
       await dio.get('https://api.test/weather');
@@ -79,8 +83,6 @@ void main() {
       expect(requests.kind, MetricKind.counter);
       expect(requests.tags['method'], 'GET');
       expect(requests.tags['status_class'], '2xx');
-      expect(
-          exporter.metrics.any((m) => m.name == 'http.client.duration'), true);
     });
 
     test('tags a failed response with its status class', () async {

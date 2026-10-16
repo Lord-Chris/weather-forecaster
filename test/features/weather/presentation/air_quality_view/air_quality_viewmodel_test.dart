@@ -55,9 +55,7 @@ void main() {
       expect(viewModel.isBusy, isFalse);
     });
 
-    test(
-        'fetchAirQuality should log the error by type and time the screen load',
-        () async {
+    test('fetchAirQuality should log the error by type', () async {
       when(() => repo.getAirQuality(city)).thenThrow(InternetAppException());
 
       await viewModel.fetchAirQuality();
@@ -67,12 +65,6 @@ void main() {
       expect(log.fields['error.type'], 'InternetAppException');
       expect(log.fields['operation'], 'fetchAirQuality');
       expect(log.stackTrace, isNotNull);
-      final span = exporter.spans.single;
-      expect(span.name, 'AirQualityViewModel');
-      expect(span.errorType, 'InternetAppException');
-      final timing =
-          exporter.metrics.firstWhere((m) => m.name == 'screen.load.duration');
-      expect(timing.tags['screen'], 'air_quality');
     });
   });
 }

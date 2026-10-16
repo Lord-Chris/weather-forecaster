@@ -46,7 +46,14 @@ class HomeViewModel extends ObservedViewModel {
   }
 
   /// Loads the cities the user added, then fetches the weather for all cities.
-  Future<void> init() async {
+  Future<void> init() => traced(
+        'HomeViewModel.init',
+        _init,
+        telemetry: _telemetry,
+        attributes: {'viewmodel': 'HomeViewModel'},
+      );
+
+  Future<void> _init() async {
     // TODO(lab-1.10) Wide event: home load. One `home.load` event for the whole
     final stopwatch = Stopwatch()..start();
     var savedCount = 0;
@@ -55,7 +62,7 @@ class HomeViewModel extends ObservedViewModel {
         final saved = await _weatherRepo.getSavedCities();
         savedCount = saved.length;
         allCities = [...AppConstants.cities, ...saved];
-        // TODO(lab-2.7) Gauges, current level: `cities.saved` (saved cities loaded)
+        // TODO(lab-2.4) Gauges, current level: `cities.saved` (saved cities loaded)
         _telemetry.metric('cities.saved', savedCount);
       } catch (e, s) {
         _log.e(e);
@@ -67,7 +74,6 @@ class HomeViewModel extends ObservedViewModel {
             stackTrace: s);
       }
       await getCurrentWeather();
-      _telemetry.metric('cities.displayed', cities.length);
     } finally {
       stopwatch.stop();
       final loaded = allCities.where((city) => city.weather != null).length;
@@ -78,17 +84,11 @@ class HomeViewModel extends ObservedViewModel {
         'cities_failed': allCities.length - loaded,
         'duration_ms': stopwatch.elapsedMilliseconds,
       });
-      _telemetry.timing(
-        'screen.load.duration',
-        stopwatch.elapsed,
-        {'screen': 'home'},
-      );
     }
   }
 
   /// Opens the search screen and reloads the list if a city was added.
   Future<void> onAddCityTap() async {
-    _telemetry.counter('ui.action', {'action': 'add_city'});
     _telemetry.log.d('add city tapped');
     final added = await _navigationService.navigateTo(Routes.addCityView);
     if (added == true) await init();
@@ -116,8 +116,6 @@ class HomeViewModel extends ObservedViewModel {
           newCities.add(allCities[i].copyWith(weather: res[i]));
         }
         allCities = newCities;
-        // TODO(lab-3.6) Span attributes: inside observe(), add attributes to the
-        _telemetry.current?.setAttribute('cities', allCities.length);
       });
     } on IAppException catch (e, s) {
       _log.e(e);
@@ -127,8 +125,6 @@ class HomeViewModel extends ObservedViewModel {
   }
 
   void onCardTap(CityLocationModel city) {
-    // TODO(lab-2.6) Counter, user actions: `ui.action` tagged action=card_tap
-    _telemetry.counter('ui.action', {'action': 'card_tap'});
     // TODO(lab-1.7) Lifecycle: navigation. Replace the print here and in
     _telemetry.log.d('card tapped', {'city_id': city.id});
     _navigationService.navigateTo(

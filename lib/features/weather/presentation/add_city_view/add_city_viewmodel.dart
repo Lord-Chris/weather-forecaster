@@ -1,12 +1,14 @@
 import 'dart:async';
 
+import 'package:stacked/stacked.dart';
+
 import '../../../../core/app/_app.dart';
 import '../../../../core/shared/models/_models.dart';
 import '../../../../core/telemetry/_telemetry.dart';
 import '../../data/dtos/geo_location_model.dart';
 import '../../data/repositories/weather_repo.dart';
 
-class AddCityViewModel extends ObservedViewModel {
+class AddCityViewModel extends BaseViewModel {
   final _log = getLogger('AddCityViewModel');
   final _weatherRepo = locator<WeatherRepo>();
   final _navigationService = locator<NavigationService>();
@@ -48,8 +50,7 @@ class AddCityViewModel extends ObservedViewModel {
 
   /// Searches for places matching [query].
   Future<void> search() async {
-    // TODO(lab-3.5) Search span: extend ObservedViewModel and wrap the repo call
-    // TODO(lab-2.5) Search metrics: counter `city.search.count` (tag success),
+    // TODO(lab-2.5) Search metrics: counter `city.search.stale_discarded` for
     // TODO(lab-1.9) Wide event: city search. One `city.search` event per search,
     final searched = query.trim();
     final stopwatch = Stopwatch()..start();
@@ -61,9 +62,8 @@ class AddCityViewModel extends ObservedViewModel {
     };
     errorMessage = null;
     try {
-      // observe() turns busy on and off; the catch below stays outside it so a
-      // failure reaches the span.
-      final found = await observe(() => _weatherRepo.searchCities(searched));
+      setBusy(true);
+      final found = await _weatherRepo.searchCities(searched);
       event['result_count'] = found.length;
       // Ignore a stale response when the user kept typing.
       if (searched != query.trim()) {
@@ -89,6 +89,7 @@ class AddCityViewModel extends ObservedViewModel {
       results = [];
       errorMessage = e.message;
     } finally {
+      setBusy(false);
       stopwatch.stop();
       event['duration_ms'] = stopwatch.elapsedMilliseconds;
       if (event['success'] == true) {
@@ -96,8 +97,6 @@ class AddCityViewModel extends ObservedViewModel {
       } else {
         _telemetry.log.e('city.search', event);
       }
-      _telemetry.counter('city.search.count', {'success': event['success']});
-      _telemetry.timing('city.search.duration', stopwatch.elapsed);
     }
   }
 

@@ -14,14 +14,12 @@ import '../dtos/weather_model.dart';
 /// Repository class for fetching weather data.
 ///
 /// Each fetch builds one wide event (`weather.fetch`) as it runs and logs it
-/// once when it finishes, plus the RED metrics (attempts, errors, duration).
+/// once when it finishes, and times itself.
 class WeatherRepo {
   final _localSource = locator<WeatherLocalSource>();
   final _remoteSource = locator<WeatherRemoteSource>();
   final _connectivityService = locator<IConnectivityService>();
   final _telemetry = locator<Telemetry>();
-
-  int _inFlight = 0;
 
   /// Checks if the device is connected to the internet.
   Future<bool> get isConnected =>
@@ -37,9 +35,7 @@ class WeatherRepo {
   /// Throws [FallbackAppException] if a fallback exception occurs.
   Future<WeatherModel?> getCurrentWeather(CityLocationModel city) async {
     // TODO(lab-1.8) Wide event: weather fetch. Start a Stopwatch and a
-    // TODO(lab-2.1) Counter, attempts (the R in RED, Rate): `weather.fetch.attempts`
-    // TODO(lab-2.2) Counter, errors (the E in RED): `weather.fetch.errors` with
-    // TODO(lab-2.3) Timing, duration (the D in RED): `weather.fetch.duration` for
+    // TODO(lab-2.2) Timing, duration (the D in RED): `weather.fetch.duration` for
     final stopwatch = Stopwatch()..start();
     final event = _startFetch('getCurrentWeather', city);
     StackTrace? failure;
@@ -49,7 +45,6 @@ class WeatherRepo {
       // TODO(lab-1.3) Decisions: data source. Log each branch that changes what
       if (connected) {
         try {
-          // TODO(lab-2.8) Tag the timing with source (remote or cache) so the
           final weather = await _remoteSource.getCurrentWeather(city);
           await _localSource.cacheWeather(city.id, weather);
           event['source'] = 'remote';
@@ -94,7 +89,6 @@ class WeatherRepo {
   ) async {
     final cached = await _localSource.getCachedCurrentWeather(city.id);
     event['cache_hit'] = cached != null;
-    _recordCacheLookup('weather', hit: cached != null);
     if (cached == null) {
       _telemetry.log.i('weather cache miss', {
         'city_id': city.id,
@@ -116,31 +110,22 @@ class WeatherRepo {
     final event = _startFetch('get5DayForecast', city);
     StackTrace? failure;
     try {
-      // TODO(lab-3.8) Child spans in the repo: wrap the connectivity check, the
-      final connected = await traced(
-        'connectivity check',
-        () => isConnected,
-        telemetry: _telemetry,
-      );
+      final connected = await isConnected;
       event['connected'] = connected;
       if (connected) {
+        // TODO(lab-3.4) Child span in the repo: wrap the remote call in `traced(...)`
         final forecast = await traced(
           'remote get5DayForecast',
           () => _remoteSource.get5DayForecast(city),
           telemetry: _telemetry,
         );
-        await traced(
-          'cache write forecast',
-          () => _localSource.cacheForecast(city.id, forecast),
-          telemetry: _telemetry,
-        );
+        await _localSource.cacheForecast(city.id, forecast);
         event['source'] = 'remote';
         return forecast;
       }
       final cached = await _localSource.getCachedForecast(city.id);
       event['source'] = 'cache';
       event['cache_hit'] = cached != null;
-      _recordCacheLookup('forecast', hit: cached != null);
       return cached;
     } on IAppException catch (e, s) {
       event['success'] = false;
@@ -181,7 +166,6 @@ class WeatherRepo {
       final cached = await _localSource.getCachedAirQuality(city.id);
       event['source'] = 'cache';
       event['cache_hit'] = cached != null;
-      _recordCacheLookup('air_quality', hit: cached != null);
       return cached;
     } on IAppException catch (e, s) {
       event['success'] = false;
@@ -245,37 +229,23 @@ class WeatherRepo {
     await _localSource.saveCities([...saved, city]);
   }
 
-  /// Records a cache lookup as two counters (`cache.hit`, `cache.miss`); the
-  /// dashboard divides them, so no ratio is stored.
-  void _recordCacheLookup(String cache, {required bool hit}) {
-    // TODO(lab-2.4) Counters, cache: `cache.hit` or `cache.miss` with a `cache`
-    _telemetry.counter(hit ? 'cache.hit' : 'cache.miss', {'cache': cache});
-  }
-
   /// Starts the wide event for a fetch: a plain map that the method fills in
   /// as it learns things, and logs once at the end.
   Map<String, Object?> _startFetch(String operation, CityLocationModel city) {
-    _telemetry.metric('weather.fetch.in_flight', ++_inFlight);
     return {'operation': operation, 'city_id': city.id, 'success': true};
   }
 
-  /// Logs the wide event once and records the RED metrics (Lab 2) from it.
+  /// Logs the wide event once and times the fetch (Lab 2), tagged by source.
   void _endFetch(
     Map<String, Object?> event,
     Stopwatch stopwatch,
     StackTrace? failure,
   ) {
-    _telemetry.metric('weather.fetch.in_flight', --_inFlight);
     event['duration_ms'] = stopwatch.elapsedMilliseconds;
     final operation = event['operation'];
     final tags = {'operation': operation, 'source': event['source'] ?? 'none'};
-    _telemetry.counter('weather.fetch.attempts', tags);
     _telemetry.timing('weather.fetch.duration', stopwatch.elapsed, tags);
     if (event['success'] == false) {
-      _telemetry.counter('weather.fetch.errors', {
-        'operation': operation,
-        'error.type': event['error.type'],
-      });
       _telemetry.log.e('weather.fetch', event, failure);
     } else {
       _telemetry.log.i('weather.fetch', event);

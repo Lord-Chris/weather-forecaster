@@ -8,7 +8,6 @@ import 'package:weather_forecast/core/shared/models/_models.dart';
 import 'package:weather_forecast/core/telemetry/_telemetry.dart';
 import 'package:weather_forecast/features/weather/data/datasources/weather_local_source.dart';
 import 'package:weather_forecast/features/weather/data/dtos/city_location_model.dart';
-import 'package:weather_forecast/features/weather/data/dtos/forecast_model.dart';
 import 'package:weather_forecast/features/weather/data/dtos/geo_location_model.dart';
 import 'package:weather_forecast/features/weather/data/dtos/weather_model.dart';
 import 'package:weather_forecast/features/weather/data/repositories/weather_repo.dart';
@@ -22,18 +21,12 @@ import '../../../helpers/service_helpers.dart';
 
 class _FakeWeather extends Fake implements WeatherModel {}
 
-class _FakeForecast extends Fake implements ForecastModel {
-  @override
-  List<ListElement> get list => [];
-}
-
 void main() {
   const city = CityLocationModel(id: '7', name: 'Zocca', lat: 44.3, lon: 10.9);
   const lagos =
       GeoLocationModel(name: 'Lagos', country: 'NG', lat: 6.45, lon: 3.39);
 
   late WeatherRepo repo;
-  late NavigationService navigation;
 
   setUpAll(() {
     registerFallbackValue(city);
@@ -44,7 +37,6 @@ void main() {
     registerServices();
     registerDataLayers();
     repo = locator<WeatherRepo>();
-    navigation = locator<NavigationService>();
   });
 
   tearDown(() {
@@ -63,10 +55,9 @@ void main() {
 
     setUp(() => viewModel = HomeViewModel());
 
-    test('card tap counts a ui.action and logs the city id, not its name', () {
+    test('card tap logs the city id, not its name', () {
       viewModel.onCardTap(city);
 
-      expect(metric('ui.action').tags, containsPair('action', 'card_tap'));
       final log = logs('card tapped').single;
       expect(log.fields['city_id'], '7');
       expect(log.fields.containsKey('name'), isFalse);
@@ -78,25 +69,17 @@ void main() {
       expect(logs('search changed').single.fields['query_length'], 6);
     });
 
-    test('add city tap counts a ui.action', () async {
-      when(() => navigation.navigateTo(any())).thenAnswer((_) async => false);
-
-      await viewModel.onAddCityTap();
-
-      expect(metric('ui.action').tags['action'], 'add_city');
-    });
-
-    test('load is one span with the city count and one home.load event',
-        () async {
+    test('load is one span and one home.load event', () async {
       when(() => repo.getSavedCities()).thenAnswer((_) async => [city]);
       when(() => repo.getCurrentWeather(any()))
           .thenAnswer((_) async => _FakeWeather());
 
       await viewModel.init();
 
-      final span =
-          telemetryExporter.spans.firstWhere((s) => s.name == 'HomeViewModel');
-      expect(span.attributes['cities'], AppConstants.cities.length + 1);
+      expect(
+        telemetryExporter.spans.any((s) => s.name == 'HomeViewModel'),
+        isTrue,
+      );
       final event = logs('home.load').single;
       expect(event.fields['default_cities'], AppConstants.cities.length);
       expect(event.fields['saved_cities'], 1);
@@ -105,8 +88,6 @@ void main() {
       expect(event.fields['duration_ms'], isA<int>());
       expect(metric('cities.saved').value, 1);
       expect(metric('cities.saved').kind, MetricKind.gauge);
-      expect(metric('cities.displayed').value, AppConstants.cities.length + 1);
-      expect(metric('screen.load.duration').tags['screen'], 'home');
     });
 
     test(
@@ -150,21 +131,6 @@ void main() {
 
     setUp(() => viewModel = WeatherDetailsViewModel()..city = city);
 
-    test('a log written inside the work carries its span trace and span ids',
-        () async {
-      when(() => repo.get5DayForecast(any()))
-          .thenAnswer((_) async => _FakeForecast());
-
-      await viewModel.fetchForecast();
-
-      final span = telemetryExporter.spans
-          .firstWhere((s) => s.name == 'WeatherDetailsViewModel');
-      final log = logs('forecast fetch').single;
-      expect(log.traceId, span.traceId);
-      expect(log.spanId, span.spanId);
-      expect(metric('screen.load.duration').tags['screen'], 'details');
-    });
-
     test('a failure reaches the span instead of ending as a success', () async {
       when(() => repo.get5DayForecast(any())).thenThrow(InternetAppException());
 
@@ -177,17 +143,6 @@ void main() {
           'InternetAppException');
       expect(logs('forecast load failed').single.stackTrace, isNotNull);
     });
-
-    test('air quality tap counts a ui.action', () {
-      when(() =>
-              navigation.navigateTo(any(), arguments: any(named: 'arguments')))
-          .thenAnswer((_) async => null);
-
-      viewModel.onAirQualityTap();
-
-      expect(metric('ui.action').tags['action'], 'air_quality');
-      expect(logs('air quality tapped').single.fields['city_id'], '7');
-    });
   });
 
   group('AddCityViewModel', () {
@@ -196,8 +151,7 @@ void main() {
     setUp(() => viewModel = AddCityViewModel());
     tearDown(() => viewModel.dispose());
 
-    test('a search emits one city.search event, a count and a timing',
-        () async {
+    test('a search emits one city.search event', () async {
       when(() => repo.searchCities('Lagos')).thenAnswer((_) async => [lagos]);
       viewModel.query = 'Lagos';
 
@@ -209,12 +163,6 @@ void main() {
       expect(event.fields['stale_discarded'], false);
       expect(event.fields['success'], true);
       expect(event.fields['duration_ms'], isA<int>());
-      expect(metric('city.search.count').tags['success'], true);
-      expect(metric('city.search.duration').kind, MetricKind.timing);
-      expect(
-        telemetryExporter.spans.any((s) => s.name == 'AddCityViewModel'),
-        isTrue,
-      );
     });
 
     test('a stale response is discarded, counted and flagged on the event',
@@ -234,8 +182,7 @@ void main() {
       expect(metric('city.search.stale_discarded').kind, MetricKind.counter);
     });
 
-    test('a failed search logs the error type on the event and the span',
-        () async {
+    test('a failed search logs the error type on the event', () async {
       when(() => repo.searchCities('Lagos')).thenThrow(InternetAppException());
       viewModel.query = 'Lagos';
 
@@ -245,20 +192,13 @@ void main() {
       expect(event.level, TelemetryLevel.error);
       expect(event.fields['success'], false);
       expect(event.fields['error.type'], 'InternetAppException');
-      expect(
-        telemetryExporter.spans
-            .firstWhere((s) => s.name == 'AddCityViewModel')
-            .errorType,
-        'InternetAppException',
-      );
     });
 
-    test('a too-short query is logged as skipped and makes no search span', () {
+    test('a too-short query is logged as skipped', () {
       viewModel.onQueryChanged('L');
 
       final skipped = logs('search skipped').single;
       expect(skipped.fields['reason'], 'query_too_short');
-      expect(telemetryExporter.spans, isEmpty);
     });
 
     test('a failed save is logged by type', () async {
@@ -298,6 +238,32 @@ void main() {
       expect(telemetryExporter.spans.single.name, 'storage read saved_cities');
     });
 
+    test('cached reads count a miss, tagged by cache', () async {
+      when(() => storage.get(any(), key: any(named: 'key')))
+          .thenAnswer((_) async => null);
+
+      await source.getCachedCurrentWeather('7');
+      await source.getCachedForecast('7');
+      await source.getCachedAirQuality('7');
+
+      final misses = telemetryExporter.metrics
+          .where((m) => m.name == 'cache.miss')
+          .map((m) => m.tags['cache'])
+          .toList();
+      expect(misses, ['weather', 'forecast', 'air_quality']);
+    });
+
+    test('a cached value counts as a hit', () async {
+      when(() => storage.get(any(), key: any(named: 'key')))
+          .thenAnswer((_) async => '{}');
+
+      // The stub is not a real reading, so decoding it fails; the lookup is
+      // counted before that.
+      await expectLater(source.getCachedAirQuality('7'), throwsA(anything));
+
+      expect(metric('cache.hit').tags['cache'], 'air_quality');
+    });
+
     test('an empty store is logged as a miss', () async {
       when(() => storage.get(any(), key: any(named: 'key')))
           .thenAnswer((_) async => null);
@@ -319,7 +285,7 @@ void main() {
       expect(logs('saved cities parse failed').single.stackTrace, isNotNull);
     });
 
-    test('writing saved cities is traced and counted', () async {
+    test('writing saved cities is logged', () async {
       when(() => storage.put(any(),
           key: any(named: 'key'),
           value: any(named: 'value'))).thenAnswer((_) async {});
@@ -327,7 +293,7 @@ void main() {
       await source.saveCities([city]);
 
       expect(logs('saved cities written').single.fields['saved_count'], 1);
-      expect(telemetryExporter.spans.single.name, 'storage write saved_cities');
+      expect(telemetryExporter.spans, isEmpty);
     });
   });
 }

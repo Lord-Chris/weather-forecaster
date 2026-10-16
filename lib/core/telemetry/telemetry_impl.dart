@@ -19,6 +19,7 @@ class TelemetryImpl implements Telemetry {
 
   final TelemetryExporter _exporter;
   final String _attendee;
+  final _screens = <String>[];
 
   TelemetryImpl({TelemetryExporter? exporter, String? attendee})
       : _exporter = exporter ?? SentryExporter(),
@@ -39,7 +40,9 @@ class TelemetryImpl implements Telemetry {
     _exporter.exportLog(LogRecord(
       level: level,
       message: message,
-      fields: {...TelemetrySanitizer.attributes(fields), 'attendee': _attendee},
+      fields: {
+        ...TelemetrySanitizer.attributes(_withScreen(fields)),
+        'attendee': _attendee},
       traceId: span?.traceId,
       spanId: span?.spanId,
       stackTrace: stackTrace,
@@ -65,7 +68,9 @@ class TelemetryImpl implements Telemetry {
       name: name,
       value: value,
       kind: kind,
-      tags: {...TelemetrySanitizer.attributes(tags), 'attendee': _attendee},
+      tags: {
+        ...TelemetrySanitizer.attributes(_withScreen(tags)),
+        'attendee': _attendee},
     ));
   }
 
@@ -81,9 +86,28 @@ class TelemetryImpl implements Telemetry {
       traceId: p?.traceId ?? _id(16),
       spanId: _id(8),
       parentSpanId: p?.spanId,
-      attributes: {...attributes, 'attendee': _attendee},
+      attributes: {..._withScreen(attributes), 'attendee': _attendee},
       onEnd: _exporter.exportSpan,
     );
+  }
+
+  @override
+  String? get currentScreen => _screens.isEmpty ? null : _screens.last;
+
+  @override
+  void enterScreen(String name) => _screens.add(name);
+
+  @override
+  void leaveScreen(String name) {
+    final i = _screens.lastIndexOf(name);
+    if (i >= 0) _screens.removeAt(i);
+  }
+
+  /// Adds the current screen unless the caller already set one.
+  Map<String, Object?> _withScreen(Map<String, Object?> fields) {
+    final screen = currentScreen;
+    if (screen == null || fields.containsKey('screen')) return fields;
+    return {...fields, 'screen': screen};
   }
 
   @override

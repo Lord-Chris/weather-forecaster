@@ -14,6 +14,13 @@ class WeatherLocalSource {
   final _localStorageService = locator<ILocalStorage>();
   final _telemetry = locator<Telemetry>();
 
+  /// Two counters (`cache.hit`, `cache.miss`); the dashboard divides them, so
+  /// no ratio is stored.
+  void _recordLookup(String cache, {required bool hit}) {
+    // TODO(lab-2.3) Counters, cache: `cache.hit` or `cache.miss` with a `cache`
+    _telemetry.counter(hit ? 'cache.hit' : 'cache.miss', {'cache': cache});
+  }
+
   void _cacheWritten(String cache, String cityId) =>
       _telemetry.log.d('cache written', {
         'cache': cache,
@@ -43,6 +50,7 @@ class WeatherLocalSource {
       StorageKeys.weatherBox,
       key: cityId,
     );
+    _recordLookup('weather', hit: weather != null);
     return weather != null ? WeatherModel.fromJson(weather) : null;
   }
 
@@ -69,6 +77,7 @@ class WeatherLocalSource {
       StorageKeys.forecastBox,
       key: cityId,
     );
+    _recordLookup('forecast', hit: forecast != null);
     return forecast != null ? ForecastModel.fromJson(forecast) : null;
   }
 
@@ -89,26 +98,23 @@ class WeatherLocalSource {
       StorageKeys.airQualityBox,
       key: cityId,
     );
+    _recordLookup('air_quality', hit: airQuality != null);
     return airQuality != null ? AirQualityModel.fromJson(airQuality) : null;
   }
 
   /// Persists the cities the user added through the search screen.
-  Future<void> saveCities(List<CityLocationModel> cities) {
-    return traced('storage write saved_cities', () async {
-      await _localStorageService.put(
-        StorageKeys.savedCitiesBox,
-        key: StorageKeys.savedCitiesKey,
-        value: json.encode(cities.map((e) => e.toMap()).toList()),
-      );
-      _telemetry.log.i('saved cities written', {
-        'saved_count': cities.length,
-      });
-    }, telemetry: _telemetry);
+  Future<void> saveCities(List<CityLocationModel> cities) async {
+    await _localStorageService.put(
+      StorageKeys.savedCitiesBox,
+      key: StorageKeys.savedCitiesKey,
+      value: json.encode(cities.map((e) => e.toMap()).toList()),
+    );
+    _telemetry.log.i('saved cities written', {'saved_count': cities.length});
   }
 
   /// Returns the cities the user added, or an empty list.
   Future<List<CityLocationModel>> getSavedCities() {
-    // TODO(lab-3.9) Storage spans: wrap this read and saveCities in `traced(...)`.
+    // TODO(lab-3.5) Storage span: wrap this read in `traced(...)`.
     // TODO(lab-1.5) State and persistence: log what was read and written to
     return traced('storage read saved_cities', () async {
       final raw = await _localStorageService.get(
