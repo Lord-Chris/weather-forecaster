@@ -43,11 +43,9 @@ class AppTheme {
     checkboxTheme: CheckboxThemeData(
       side: const BorderSide(color: AppColors.gray300),
       shape: const CircleBorder(),
-      fillColor: WidgetStateProperty.resolveWith(
-        (states) {
-          return states.isEmpty ? AppColors.transparent : null;
-        },
-      ),
+      fillColor: WidgetStateProperty.resolveWith((states) {
+        return states.isEmpty ? AppColors.transparent : null;
+      }),
     ),
     datePickerTheme: const DatePickerThemeData(
       surfaceTintColor: AppColors.transparent,
