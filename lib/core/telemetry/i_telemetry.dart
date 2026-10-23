@@ -5,6 +5,7 @@ import 'telemetry_logger.dart';
 /// The only thing the app talks to for observability.
 abstract class Telemetry {
   static Telemetry get instance => locator<Telemetry>();
+  static Telemetry get I => locator<Telemetry>();
 
   /// Structured logs: `telemetry.log.i('message', {'field': 1})`, with `d`, `i`,
   /// `w` and `e` for the four levels. Also callable with an explicit level.
@@ -12,8 +13,11 @@ abstract class Telemetry {
 
   void counter(String name, [Map<String, Object?> tags = const {}]);
 
-  void timing(String name, Duration duration,
-      [Map<String, Object?> tags = const {}]);
+  void timing(
+    String name,
+    Duration duration, [
+    Map<String, Object?> tags = const {},
+  ]);
 
   void metric(String name, num value, [Map<String, Object?> tags = const {}]);
 

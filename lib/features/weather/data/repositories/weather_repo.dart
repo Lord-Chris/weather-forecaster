@@ -73,7 +73,9 @@ class WeatherRepo {
       rethrow;
     } catch (e, s) {
       // The original error is wrapped and its type is lost from here on.
-      _telemetry.logError('unexpected error wrapped', e, stackTrace: s);
+      _telemetry.logError('unexpected error wrapped', e,
+          fields: {'service': 'WeatherRepo', 'operation': 'getCurrentWeather'},
+          stackTrace: s);
       event['success'] = false;
       event['error.type'] = 'FallbackAppException';
       failure = s;

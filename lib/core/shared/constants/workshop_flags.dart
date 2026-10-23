@@ -2,9 +2,14 @@
 /// run clean. Pass with `--dart-define=NAME=true`.
 class WorkshopFlags {
   /// Logs challenge: the repository swallows a remote error and returns cached data.
-  static const silentFallback = bool.fromEnvironment('SILENT_FALLBACK');
+  static const silentFallback = bool.fromEnvironment(
+    'SILENT_FALLBACK',
+    defaultValue: true,
+  );
 
   /// Traces challenge: one tap sends the same forecast request twice.
-  static const silentDuplicateRequest =
-      bool.fromEnvironment('SILENT_DUPLICATE_REQUEST');
+  static const silentDuplicateRequest = bool.fromEnvironment(
+    'SILENT_DUPLICATE_REQUEST',
+    defaultValue: true,
+  );
 }

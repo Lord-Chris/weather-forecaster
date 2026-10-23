@@ -88,6 +88,14 @@ Search for `TODO(lab-N)`.
 
 Outside Lab 1, `Telemetry` is injected everywhere (registered in the locator), so tests can swap in an in-memory exporter.
 
+## Running the tests
+
+`SILENT_FALLBACK` and `SILENT_DUPLICATE_REQUEST` are on by default (the bug hunt), and some tests assume the app is healthy. Run them with the bugs off:
+
+```sh
+flutter test --dart-define=SILENT_FALLBACK=false --dart-define=SILENT_DUPLICATE_REQUEST=false
+```
+
 ## Branches
 
 `workshop/main` is the starter: the telemetry layer is provided and each lab step is a `TODO(lab-N.M)` with its instructions. `workshop/solution` is the same code with every step implemented. The first line of each TODO is kept on the solution so you can search for a step on either branch. `main` is not used.

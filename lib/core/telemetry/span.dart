@@ -20,10 +20,9 @@ class Span {
     required this.spanId,
     required this.parentSpanId,
     required Map<String, Object?> attributes,
-    required void Function(Span span) onEnd,
-  })  : attributes = TelemetrySanitizer.attributes(attributes),
-        startTime = DateTime.now(),
-        _onEnd = onEnd;
+    required this._onEnd,
+  }) : attributes = TelemetrySanitizer.attributes(attributes),
+       startTime = DateTime.now();
 
   bool get isEnded => endTime != null;
 
